@@ -1,0 +1,52 @@
+/*leetcode 3
+Given a string, find the length of the longest substring without repeating characters.
+Examples:
+Given "abcabcbb", the answer is "abc", which the length is 3.
+Given "bbbbb", the answer is "b", with the length of 1.
+Given "pwwkew", the answer is "wke", with the length of 3. Note that the answer must be a substring, 
+"pwke" is a subsequence and not a substring.
+
+*/
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <algorithm>
+using namespace std;
+
+ 
+
+int lengthOfLongestSubstring(string s) {
+	// for ASCII char sequence, use this as a hashmap
+	vector<int> charIndex(256, -1);
+	int longest = 0, m = 0;
+    for (int i = 0; i < s.length(); i++) {
+		m = max(charIndex[s[i]] + 1, m);    // automatically takes care of -1 case
+		charIndex[s[i]] = i;
+		longest = max(longest, i - m + 1);
+		//cout << "i: " << i << "    s[i]: " << s[i] << "    charIndex[s[i]]: " << charIndex[s[i]] << 
+		//	"   m:  " << m << "  i-m+1:  " << i - m + 1 << "   longest:  " << longest << endl;
+	}
+
+	return longest;
+}
+int lengthOfLongestSubstring2(string s) {
+	// for ASCII char sequence, use this as a hashmap
+	vector<int> last(256, -1);               //记录字符上次出现位置
+	int longest = 0, start = 0, l = s.length();   //start记录当前子串开始位置
+	for (int i = 0; i <l; i++)
+	{
+		if (last[s[i]] >= start)               //string中出现重复重新开始记录
+		{               
+			longest = max(i - start, longest); 
+			start = last[s[i]] + 1;
+		}
+		last[s[i]] = i;         //记录s[i]最后出现位置
+	}
+	return  max(l - start, longest);
+}
+int main(int argc, char* argv[])
+{
+	cout << lengthOfLongestSubstring2("abcabcbb");
+	return 0;
+}

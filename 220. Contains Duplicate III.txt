@@ -1,0 +1,79 @@
+/*220. Contains Duplicate III
+题意:给一个整型数组，找到数组中是否存在两个元素，它们的下标差不超过k，元素值差不超过t。
+分析:一开始对于每个元素，查找它后面k个元素是否与其值相差t以内。这样时间复杂度为O(kn)，
+不能过超长数组的测试。所以可能存在O(nlogn)的算法。
+首先给数组元素排序，并保留原有下标。示例如下：
+
+0	1	2	3	-->     2	3	1	0
+5	3	1	2	sort	1	2	3	5
+
+方法一:维护一个特殊的队列（包括一个元素队列和下标队列）。该队列要求队首和队尾的元素值相差不超过t。
+具体操作：
+(1) 如队列为空则当前元素入队。
+(2) 如队头元素值与当前待入队元素值的差超过t，队头元素出队(因为经排序后，后面入队的元素值
+只会比当前元素更大，不可能出现与队首元素值差小于t的情况，所以队首元素已经没有继续存在在队列中的必要了)。
+(3) 如对头元素值与当前待入队元素值的差不超过t，则检查二者的下标差，如小于k，返回true，否则当前元素入队。
+(4) 最后队中剩余的元素只需比较队首与队尾的下标值即可。
+时间复杂度。显然是排序的时间复杂度为O(nlogn)，
+维护队列的过程每个元素出入队列一次。为O(n)。故总时间复杂度O(nlogn)。
+
+方法二:题目大意：给一个整数数组，找到是否存在两个不同的下标i和j，使得nums[i]和nums[j]的差的绝对值不超过t并且i和j的差的绝对值不超过k～
+分析：建立一个map，对应的是元素的值到元素的下标的映射。指针i将nums数组从头遍历到尾，j指针一开始指向0。i向右走的时候如果i和j之差大于k，
+且m中有nums[j]，就将nums[j]从m中移除，且j向前走一步～这样就保证了m中所有的元素满足第一个条件：i和j的差的绝对值不超过k～
+接下来考虑nums[i]和nums[j]的差的绝对值不超过t，abs(num[i] – nums[j]) <= t 则 nums[j]的最小可能满足条件的值为>=nums[i] – t的，
+所以使用map中的lower_bound，寻找第一个大于等于nums[i] – t的地方，找到后标记为a，此时的a只是取到了可能满足的最小的a，但(a – nums[i])不一定满足，
+所以检验a是否存在于map中且是否abs(a->first – nums[i]) <= t。如果都满足说明可以return true～
+为什么要循环的最后写map的插入呢，因为比较的是i之前的所有元素～为了防止找到的是nums[i]本身，然后让nums[i]自己本身和自己比较差值了，这样结果就不对了～
+如果到最后都没有能够return true，则return false～
+*/
+class Solution217 {
+public:
+	bool containsNearbyAlmostDuplicate1(vector<int>& nums, int k, int t) {     //50万数据 10s
+		map<long long, int> m;
+		int j = 0;
+		for (int i = 0; i < nums.size(); ++i) {
+			if (i - j > k)
+				m.erase(nums[j++]);
+			auto a = m.lower_bound((long long)nums[i] - t);
+			if (a != m.end() && abs(a->first - nums[i]) <= t)
+				return true;
+			m[nums[i]] = i;
+		}
+		return false;
+	}
+	bool containsNearbyAlmostDuplicate2(vector<int>& nums, int k, int t) {    //50万数据 7.9s
+		set<int> set; // set is ordered automatically 
+		for (int i = 0; i < nums.size(); i++) {
+			if (i > k) set.erase(nums[i - k - 1]); // keep the set contains nums i j at most k
+			// |x - nums[i]| <= t  ==> -t <= x - nums[i] <= t;
+			auto pos = set.lower_bound(nums[i] - t); // x-nums[i] >= -t ==> x >= nums[i]-t 
+			// x - nums[i] <= t ==> |x - nums[i]| <= t    
+			if (pos != set.end() && *pos - nums[i] <= t)
+				return true;
+			set.insert(nums[i]);
+		}
+		return false;
+	}
+};
+
+
+
+int n = 500000;
+	vector<int> nums(n, 0);
+	for (int i = 0; i < n; i++)
+		nums[i] = i;
+	Solution217 solution217;
+
+	clock_t start2, end2;
+	double cost;
+	start2 = clock();
+
+	cout << solution217.containsNearbyAlmostDuplicate1(nums, n, 0) << endl;
+
+	end2 = clock();
+	cost = (double)(end2 - start2) / CLOCKS_PER_SEC;
+	cout << "solution217计算时间: " << cost << "s" << endl;
+
+	//leetcode220
+	vector<int> num220{1,6,9,5,7};
+	cout << "220containsNearbyAlmostDuplicate1: " << solution217.containsNearbyAlmostDuplicate1(num220, 1, 2)<<endl;

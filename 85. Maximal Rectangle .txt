@@ -1,0 +1,218 @@
+/* leetcode 85. Maximal Rectangle
+Given a 2D binary matrix filled with 0's and 1's, find the largest rectangle containing only 1's and return its area.
+For example, given the following matrix :
+1 0 1 0 0
+1 0 1 1 1
+1 1 1 1 1
+1 0 0 1 0
+Return 6.
+
+使用动态规划  三要素：定义概念、边界初始化、一般情况递推，两个难点是：角标索引问题、递推情况剖析。
+cur_left定义为在一个字符数组中，当前元素可以延伸到最左边元素的下标（当前元素为0，则这个值为0）。
+如在字符数组"0111001110"，对第三个1，其cur_left=1，对最后一个0，其cur_left=0。其示意图如下图所示
+下标       0 1 2 3 4 5 6 7 8 9
+字符数组    0 1 1 1 0 0 1 1 1 0
+                 |           |
+			cur_left=1    cur_left=0
+cur_right定义为在一个字符数组中，当前元素可以延伸到最右边元素的下标+1（当前元素为0，则这个值为字符数组的长度）。
+如在字符数组"0111001110"，对第四个1，其cur_right=8+1，对第一个0，其cur_right=10，其示意图如下图所示
+下标        0 1 2 3 4 5 6 7 8 9
+字符数组    0 1 1 1 0 0 1 1 1 0
+           |           |
+      cur_right=10  cur_right=8+1
+总结：cur_left和cur_right均由当前行的值来确定。如果当前值为'1'，则cur_left和cur_right均不变；如果当前值为'0'，则cur_left值为当前元素右侧，
+cur_right值为当前元素位置。（左闭右开）
+left[i][j]定义为在第i行第j列处，可以延伸到最左边元素的下标。
+right[i][j]定义为在第i行第j列处，可以延伸到最右边元素的下标+1。
+核心思路是从第一行开始一行一行地处理，使[i, j]处最大子矩阵的面积是(right(i, j)-left(i, j))*height(i, j)。
+其中height统计当前位置及往上'1'的数量；left和right是高度是当前点的height值的左右边界，即是以当前点为中心，以height为高度向两边扩散的左右边界。
+left(i,j) = max(left(i-1,j), cur_left)
+right(i,j) = min(right(i-1,j), cur_right)
+if matrix[i][j]=='1', height(i,j) = height(i-1,j) + 1;
+if matrix[i][j]=='0', height(i,j) = 0;
+left、right和height的值均可以通过前一行和当前行的值来确定，因此，逐行遍历即可。
+举例说明。字符长方形如下：
+0 0 0 1 0 0 0
+0 0 1 1 1 0 0
+0 1 1 1 1 1 0
+则left（l）、right（r）和height（h）的值如下所示
+row 0:
+l: 0 0 0 3 0 0 0
+r: 7 7 7 4 7 7 7
+h: 0 0 0 1 0 0 0
+row 1:
+l: 0 0 2 3 2 0 0
+r: 7 7 5 4 5 7 7
+h: 0 0 1 2 1 0 0
+row 2:
+l: 0 1 2 3 2 1 0
+r: 7 6 5 4 5 6 7
+h: 0 1 2 3 2 1 0
+*/
+
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <algorithm>
+#include <ctime>
+#include <iomanip>
+using namespace std;
+
+
+//DP solution
+int maximalRectangle(vector<vector<char> > &matrix) {
+	if (matrix.empty()) return 0;
+	const int m = matrix.size();
+	const int n = matrix[0].size();  
+
+	//int left[n], right[n], height[n];
+	//fill_n(left, n, 0); fill_n(right, n, n); fill_n(height, n, 0);
+	vector<int> height(n, 0), left(n, 0), right(n, n); 
+	int maxA = 0;
+	for (int i = 0; i<m; i++) {
+		int cur_left = 0, cur_right = n;
+		for (int j = 0; j<n; j++) { // compute height (can do this from either side)
+			if (matrix[i][j] == '1') height[j]++;
+			else height[j] = 0;
+		}
+		for (int j = 0; j<n; j++) { // compute left (from left to right)
+			if (matrix[i][j] == '1') left[j] = max(left[j], cur_left);
+			else { left[j] = 0; cur_left = j + 1; }
+		}
+		// compute right (from right to left)
+		for (int j = n - 1; j >= 0; j--) {
+			if (matrix[i][j] == '1') right[j] = min(right[j], cur_right);
+			else { right[j] = n; cur_right = j; }
+		}
+		// compute the area of rectangle (can do this from either side)
+		for (int j = 0; j<n; j++)
+			maxA = max(maxA, (right[j] - left[j])*height[j]);
+	}
+	return maxA;
+}
+
+int maximalRectangle3(vector<vector<char>> &matrix) {
+	if (matrix.empty()) return 0;
+	int rows = matrix.size();
+	int cols = matrix[0].size();
+	int maxArea = 0;
+	vector<int> heights(cols + 1, 0);
+	vector<int> stack;
+	for (int i = 0; i < rows; i++) {
+		stack.clear();
+		for (int j = 0; j < cols + 1; j++) {
+			if (j < cols) {
+				if (matrix[i][j] == '1') {
+					heights[j]++;
+				}
+				else {
+					heights[j] = 0;
+				}
+			}
+			if (stack.empty() || heights[j] >= heights[stack.back()]) {
+				stack.push_back(j);
+				continue;
+			}
+			while (!stack.empty() && heights[j] < heights[stack.back()]) {
+				int top = stack.back();
+				stack.pop_back();
+				int begin = stack.empty() ? 0 : stack.back() + 1;
+				int area = heights[top] * (j - begin);
+				if (area > maxArea) maxArea = area;
+			}
+			stack.push_back(j);
+		}
+	}
+	return maxArea;
+}
+
+double random(double start, double end)
+{
+	return start + (end - start)*rand() / (RAND_MAX + 1.0);
+}
+
+int main(int argc, char* argv[])
+{    
+	vector<vector<char> > matrix0 =
+	                               { 
+									/* { '0', '0', '0', '1', '0', '0', '0' },
+	                                 { '0', '0', '1', '1', '1', '0', '0' },
+	                                 { '0', '1', '1', '1', '1', '1', '0' } };
+	 
+	{{ '0', '0', '1', '0', '0' },
+
+	 { '1', '1', '1', '1', '0' },
+
+	 { '0', '0', '1', '0', '0' },
+ 
+	 { '0', '0', '1', '0', '0' },
+
+	 { '0', '0', '1', '0', '0' }};
+									   { '0', '1', '1', '1', '0', '1', '1', '0', '0', '1' },
+									   { '1', '1', '1', '0', '1', '0', '0', '0', '0', '1' },
+									   { '0', '1', '1', '0', '1', '0', '1', '0', '0', '1' },
+									   { '0', '1', '1', '1', '1', '1', '0', '0', '1', '1' },
+									   { '0', '1', '0', '0', '0', '0', '1', '1', '0', '1' },
+									   { '1', '0', '0', '1', '1', '1', '0', '0', '0', '0' },
+									   { '1', '0', '0', '1', '1', '1', '1', '1', '1', '1' },
+									   { '0', '0', '1', '1', '1', '1', '0', '0', '1', '1' },
+									   { '1', '1', '1', '0', '1', '1', '1', '1', '1', '1' },
+									   { '0', '0', '1', '1', '1', '0', '1', '0', '0', '0' } };*/
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '1', '1', '0', '0', '1', '0', '1' },
+	{ '0', '0', '0', '0', '1', '0', '0', '1', '0', '1' }}; 
+
+	 cout << maximalRectangle(matrix0) << endl;
+	 cout << maximalRectangle3(matrix0) << endl;
+
+	//自动产生二维数据
+	int  m = 10, n = 10;
+	srand((unsigned)time(NULL));
+	vector< vector<char> > matrix1(m, vector<char>(n, '0'));
+	for (int i = 0; i < m; i++){
+		for (int j = 0; j < n; j++){
+			matrix1[i][j] = (rand() % 2) + 48;   //rand%2是int型1或0, +48 转字符型1 0
+			cout << matrix1[i][j] << " ";
+		}
+		cout << endl;
+	}
+	cout << maximalRectangle(matrix1) << endl;
+
+
+
+	//下面程序是产生随机数
+	double random(double, double);
+	int a[2] = { 0 };
+	const int Gen_max = 1000000;
+	srand(unsigned(time(0)));
+
+	for (int icnt = 0; icnt != Gen_max; ++icnt)
+		switch (int(random(0, 2)))
+	{
+		case 0: a[0]++; break;
+		case 1: a[1]++; break;
+		//case 2: a[2]++; break;
+		//case 3: a[3]++; break;
+		//case 4: a[4]++; break;
+		//case 5: a[5]++; break;
+		//case 6: a[6]++; break;
+		//case 7: a[7]++; break;
+		//case 8: a[8]++; break;
+		//case 9: a[9]++; break;
+		default: cerr << "Error!" << endl; exit(-1);
+	}
+
+	for (int icnt = 0; icnt != 2; ++icnt)
+		cout << icnt << ": " << setw(6) << setiosflags(ios::fixed) << setprecision(2) << double(a[icnt]) / Gen_max * 100 << "%" << endl;
+
+	
+	return 0;
+}
+ 

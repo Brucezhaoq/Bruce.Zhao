@@ -1,0 +1,49 @@
+//219. Contains Duplicate II
+//Given an array of integers and an integer k, find out whether there are two distinct 
+//indices i and j in the array such that nums[i] = nums[j] and the absolute difference 
+//between i and j is at most k.
+// 方法1,3 
+bool containsNearbyDuplicate1(vector<int> nums, int k) { //50万数据 7.1s
+		set<int> set;
+		for (int i = 0; i < nums.size(); i++){
+			if (i > k)
+				set.erase(nums[i - k - 1]);
+			if (!set.insert(nums[i]).second)
+				return true;
+		}
+		return false;
+	}
+	bool containsNearbyDuplicate2(vector<int>& nums, int k){ //50万数据 13.7s
+		unordered_set<int> s;
+		if (k <= 0) return false;
+		if (k >= nums.size()) k = nums.size() - 1;
+		for (int i = 0; i < nums.size(); i++){
+			if (i > k) s.erase(nums[i - k - 1]);
+			if (s.find(nums[i]) != s.end())
+				return true;
+			s.insert(nums[i]);
+		}
+		return false;
+	}
+	bool containsNearbyDuplicate3(vector<int>& nums, int k) {   //方法3是方法4的简化版  50万数据 9.3s
+		unordered_map<int, int> m;
+		for (int i = 0; i < nums.size(); ++i) {
+			if (m.find(nums[i]) != m.end() && i - m[nums[i]] <= k)
+				return true;
+			else m[nums[i]] = i;    //等于m.insert(make_pair(nums[i], i));
+		}
+		return false;
+	}
+	bool containsNearbyDuplicate4(vector<int>& nums, int k) {              //50万数据 14.3s
+		if (k <= 0 || k >= nums.size() || nums.size()<2) return false;
+		//key=int, val=index  
+		map<int, int> map;
+		for (int i = 0; i<nums.size(); i++) {
+			if (map.find(nums[i]) != map.end()) {
+				int j = map[nums[i]];
+				if (i - j <= k) return true;
+			}
+			else map.insert(make_pair(nums[i], i));
+		}
+		return false;
+	}

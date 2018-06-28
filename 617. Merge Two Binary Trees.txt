@@ -1,0 +1,109 @@
+//617. Merge Two Binary Trees
+/*
+	Given two binary trees and imagine that when you put one of them to cover the other, 
+	some nodes of the two trees are overlapped while the others are not.
+    You need to merge them into a new binary tree. The merge rule is that if two nodes overlap,
+	then sum node values up as the new value of the merged node. Otherwise, 
+	the NOT null node will be used as the node of new tree.
+
+Example 1:
+Input: 
+	Tree 1                     Tree 2                  
+          1                         2                             
+         / \                       / \                            
+        3   2                     1   3                        
+       /                           \   \                      
+      5                             4   7                  
+Output: 
+Merged tree:
+	     3
+	    / \
+	   4   5
+	  / \   \ 
+	 5   4   7
+	*/
+class Solution617 {
+public:
+	TreeNode* mergeTrees(TreeNode* t1, TreeNode* t2) {
+		if (!t1) return t2;
+		if (!t2) return t1;
+		TreeNode *t = new TreeNode(t1->val + t2->val);
+		t->left = mergeTrees(t1->left, t2->left);
+		t->right = mergeTrees(t1->right, t2->right);
+		return t;
+	}
+};
+//insertCompleteTree2是insertCompleteTree1的简化版
+TreeNode *insertCompleteTree2(struct TreeNode ** root, vector<int> vals)
+{
+	int size = vals.size();
+	vector<TreeNode *> s(size, nullptr);
+	int i = 0, j = 0 ;
+	while (size != 0)
+	{
+		//TreeNode *p = (TreeNode *)malloc(sizeof(TreeNode));
+		//TreeNode *p = newNode(vals[i]);
+		TreeNode *p = new TreeNode(vals[i]);
+		//p->val = vals[i];
+		//p->left = NULL;
+		//p->right = NULL;
+		s[i] = p;
+		if (i == 0)
+			*root = p;
+		else
+		{
+			j = (i-1)/ 2;
+			if ((i-1) % 2 == 0)  // 
+				s[j]->left = p;
+			else
+				s[j]->right = p;
+		}
+		i++;
+		size--;
+	}
+	return *root;
+}
+void levelOrder2(TreeNode*  root) {
+	queue<TreeNode*> nodeQueue;
+	nodeQueue.push(root);
+	TreeNode* temp = NULL;
+	int currentLevel = 1;  //记录当前层需要打印的节点的数量
+	int nextLevel = 0;//记录下一层需要打印的节点的数量
+	while (! nodeQueue.empty() ) {
+		temp = nodeQueue.front();
+		nodeQueue.pop();
+		if (temp->left != NULL) {
+			nodeQueue.push(temp->left);
+			nextLevel++;
+		}
+		if (temp->right != NULL) {
+			nodeQueue.push(temp->right);
+			nextLevel++;
+		}
+		cout << temp->val << " ";
+		currentLevel--;
+		if (currentLevel == 0) {
+			cout<<endl;
+			currentLevel = nextLevel;
+			nextLevel = 0;
+		}
+	}
+}
+
+//617. Merge Two Binary Trees
+	//构建完全二叉树  
+	struct TreeNode* root1 = NULL;
+	struct TreeNode* root2 = NULL;
+	vector<int> vals1{ 1, 2, 3 };
+	vector<int> vals2{ 1, 2 };
+	insertCompleteTree2(&root1,vals1);
+	insertCompleteTree2(&root2,vals2);
+
+	cout << "617. root1 :" <<endl;
+	levelOrder2(root1);
+	cout << "617. root2 :" <<endl;
+	levelOrder2(root2);
+
+	Solution617 solution617;
+	cout << "617. Merge Two Binary Trees :" <<endl;
+	levelOrder2(solution617.mergeTrees(root1, root2));

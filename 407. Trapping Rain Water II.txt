@@ -1,0 +1,193 @@
+//407. Trapping Rain Water II
+/*Given an m x n matrix of positive integers representing the height of each unit cell in a 2D elevation map,
+compute the volume of water it is able to trap after raining.
+Note:Both m and n are less than 110. The height of each unit cell is greater than 0 and is less than 20,000.
+Example:
+Given the following 3x6 height map:
+[
+[1,4,3,1,3,2],
+[3,2,1,3,2,4],
+[2,3,3,2,3,1]
+]
+Return 4.
+*/
+class S407_1 {
+public:
+	int trapRainWater(vector<vector<int>>& heightMap) {
+		if ( heightMap.size() < 3 || heightMap[0].size() < 3) return 0;
+		priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> que; 
+        //#include<functional> 默认是元素大的先出队,greater重载最小的先出队 
+		//pair<int，int>为元素类型，第一个元素小先出队，若一样则第二个小的先出队
+		//typedef pair<int, int> cell;
+		//priority_queue<cell, vector<cell>, greater<cell>> que;
+		int row = heightMap.size(), col = heightMap[0].size();
+		vector<vector<int>> visited(row, vector<int>(col, 0));
+		int water = 0, cur_height = INT_MIN;
+		//int count0 = 0;
+		for (int i = 0; i < row; i++){
+			for (int j = 0; j < col; j++){
+				if (!(i == 0 || i == row - 1 || j == 0 || j == col - 1)) continue;
+				que.push(make_pair(heightMap[i][j], i*col + j));  //que.push(cell(heightMap[i][j], i*col + j));
+				visited[i][j] = 1;
+				//count0++;
+			}
+		}
+		//cout << " count0: " <<count0 << endl;
+		vector<vector<int>> dir{ { 1, 0 }, { -1, 0 }, { 0, 1 }, { 0, -1 } };
+		while (!que.empty()){
+			auto val = que.top(); que.pop();
+			int height = val.first, x = val.second / col, y = val.second%col;
+			cur_height = max(cur_height, height);
+			for (auto d : dir){
+				int x2 = x + d[0], y2 = y + d[1];
+				if (x2 >= row || x2<0 || y2<0 || y2 >= col || visited[x2][y2]) 
+					continue;
+				visited[x2][y2] = 1;
+				if (heightMap[x2][y2] < cur_height)
+					water += cur_height - heightMap[x2][y2];
+				que.push(make_pair(heightMap[x2][y2], x2*col + y2));
+	//			count0++;
+			}
+		}
+	//	cout << " count0: " << count0 << endl;
+		return water;
+	}
+};
+
+//407. Trapping Rain Water II
+	vector<vector<int>> nums407{
+		{ 1, 4, 3, 1, 3, 2 },//{ 0, 9, 9, 0 }, //{ 1, 10, 1 }, //
+		{ 3, 2, 1, 3, 2, 4 },//{ 9, 0, 0, 1 }, //{ 1, 0, 1 },  //
+		{ 2, 3, 3, 2, 3, 1 }//{ 0, 9, 9, 0 }  //{ 1, 1, 1 }   //
+	}; 
+	/*计算时间复杂度测试代码 O(N) = M*N*log(M+N)
+	int M407 = 100, N407 = 100;
+	vector<vector<int> > nums407(M407, vector<int>(N407, 0));
+	for (int i = 0; i < M407; i++)
+		for (int j = 0; j < N407; j++)
+			nums407[i][j] = i*N407 + j + 1;*/
+
+	S407_1 s407; timestart();
+	cout << "407. Trapping Rain Water II: " << s407.trapRainWater(nums407) << endl;
+	timeend();
+	cout << "407. Trapping Rain Water II:  " << cost << "s" << endl;
+
+
+
+lixx2100 
+Reputation:  1,243
+This problem can also be solved in a more general approach way using Dijkstra.
+
+Construct a graph G = (V, E) as follows:
+V = all cells plus a dummy vertex, v, corresponding to the outside region.
+If cell(i, j) is adjacent to cell(i', j'), then add an direct edge from (i, j) to (i', j') with weight height(i', j').
+Add an edge with zero weight from any boundary cell to the dummy vertex v.
+
+The weight of a path is defined as the weight of the heaviest edge along it. Then, for any cell (i, j), the height of water it can save is equal to the weight, denoted by dist(i, j), of the shortest path from (i, j) to v. (If the weight is less than or equal to height(i, j), no water can be accumulated at that particular position.)
+
+We want to compute the dist(i, j) for all pairs of (i, j). Here, we have multiple sources and one destination, but this problem essentially can be solved using one pass of Dijkstra algorithm if we reverse the directions of all edges. The graph is sparse, i.e., there are O(rc) edges, resulting an O(rc log(rc)) = O(rc max(log r, log c)) runtime and using O(rc) space.
+
+Java Code:
+
+ public class Solution {
+
+    int[] dx = {0, 0, 1, -1};
+    int[] dy = {1, -1, 0, 0};
+
+    List<int[]>[] g;
+    int start;
+
+    private int[] dijkstra() {
+        int[] dist = new int[g.length];
+        Arrays.fill(dist, Integer.MAX_VALUE / 2);
+        dist[start] = 0;
+        TreeSet<int[]> tree = new TreeSet<>((u, v) -> u[1] == v[1] ? u[0] - v[0] : u[1] - v[1]);
+        tree.add(new int[]{start, 0});
+        while (!tree.isEmpty()) {
+            int u = tree.first()[0], d = tree.pollFirst()[1];
+            for (int[] e : g[u]) {
+                int v = e[0], w = e[1];
+                if (Math.max(d, w) < dist[v]) {
+                    tree.remove(new int[]{v, dist[v]});
+                    dist[v] = Math.max(d, w);
+                    tree.add(new int[]{v, dist[v]});
+                }
+            }
+        }
+        return dist;
+    }
+
+    public int trapRainWater(int[][] a) {
+        if (a == null || a.length == 0 || a[0].length == 0) return 0;
+        int r = a.length, c = a[0].length;
+
+        start = r * c;
+        g = new List[r * c + 1];
+        for (int i = 0; i < g.length; i++) g[i] = new ArrayList<>();
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < c; j++) {
+                if (i == 0 || i == r - 1 || j == 0 || j == c - 1) g[start].add(new int[]{i * c + j, 0});
+                for (int k = 0; k < 4; k++) {
+                    int x = i + dx[k], y = j + dy[k];
+                    if (x >= 0 && x < r && y >= 0 && y < c) g[i * c + j].add(new int[]{x * c + y, a[i][j]});
+                }
+            }
+
+        int ans = 0;
+        int[] dist = dijkstra();
+        for (int i = 0; i < r; i++)
+            for (int j = 0; j < c; j++) {
+                int cb = dist[i * c + j];
+                if (cb > a[i][j]) ans += cb - a[i][j];
+            }
+
+        return ans;
+    }
+}
+
+In fact, for convenience, one can also use PriorityQueue directly with a bit more overhead.
+
+Something like the following with O(E log E) runtime will be very simple to write. (220ms)
+
+private int[] dijkstra() {
+    int[] dist = new int[g.length];
+    Arrays.fill(dist, Integer.MAX_VALUE / 2);
+    PriorityQueue<int[]> queue = new PriorityQueue<>((u, v) -> u[1] - v[1]);
+    queue.add(new int[]{start, 0});
+    while (!queue.isEmpty()) {
+        int u = queue.peek()[0], d = queue.poll()[1];
+        if (d >= dist[u]) continue;
+
+        dist[u] = d;
+        for (int[] e : g[u]) {
+            int v = e[0], w = e[1];
+            queue.add(new int[]{v, Math.max(d, w)});
+        }
+    }
+    return dist;
+}
+To optimize it a bit: (150ms)
+
+private int[] dijkstra() {
+    int[] dist = new int[g.length];
+    boolean[] visited = new boolean[g.length];
+    Arrays.fill(dist, Integer.MAX_VALUE / 2);
+    PriorityQueue<int[]> queue = new PriorityQueue<>((u, v) -> u[1] - v[1]);
+    queue.add(new int[]{start, 0});
+    dist[start] = 0;
+    while (!queue.isEmpty()) {
+        int u = queue.peek()[0], d = queue.poll()[1];
+        if (visited[u]) continue;
+
+        visited[u] = true;
+        for (int[] e : g[u]) {
+            int v = e[0], w = e[1];
+            if (Math.max(d, w) < dist[v]) {
+                queue.add(new int[]{v, Math.max(d, w)});
+                dist[v] = Math.max(d, w);
+            }
+        }
+    }
+    return dist;
+}
+@lixx2100 optimize the last if statement to "!visited[v] && Math.max(d, w) < dist[v])" can reduce the time to 77ms.

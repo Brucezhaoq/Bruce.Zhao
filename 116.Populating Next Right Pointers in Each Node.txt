@@ -1,0 +1,59 @@
+//116.Populating Next Right Pointers in Each Node
+/*Given a binary tree
+    struct TreeLinkNode {
+      TreeLinkNode *left;
+      TreeLinkNode *right;
+      TreeLinkNode *next;
+    }
+Populate each next pointer to point to its next right node. If there is no next right node, the next pointer should be set to NULL.
+Initially, all next pointers are set to NULL.
+Note:
+You may only use constant extra space.
+You may assume that it is a perfect binary tree (ie, all leaves are at the same level, and every parent has two children).
+For example,
+Given the following perfect binary tree,
+    1
+  /    \
+  2    3
+/ \  / \
+4  5  6  7
+After calling your function, the tree should look like:
+    1 -> NULL
+  /  \
+ 2 -> 3 -> NULL
+/ \  / \
+4->5->6->7 -> NULL
+*/
+// Recursion, more than constant space
+class Solution116 {
+public:
+	void connect1(TreeNode *&root) {
+		if (!root) return;
+		if (root->left) root->left->next = root->right;
+		if (root->right) root->right->next = root->next ? root->next->left : NULL;
+		connect1(root->left);
+		connect1(root->right);
+	}
+	void connect2(TreeNode *&root) {
+		if (!root) return;
+		queue<TreeNode*> q;
+		q.push(root);
+		while (!q.empty()) {
+			int size = q.size();
+			for (int i = 0; i < size; ++i) {
+				TreeNode *t = q.front(); q.pop();
+				if (i < size - 1) {
+					t->next = q.front();
+				}
+				if (t->left) q.push(t->left);
+				if (t->right) q.push(t->right);
+			}
+		}
+	}
+};
+//116.Populating Next Right Pointers in Each Node
+	vector<int> vals116{ 1, 2, 3, 4, 5, 6, 7  };
+	struct TreeNode* root116 = insertCompleteTree2(&root116, vals116);  //构建完全二叉树
+	Solution116 solution116;
+	solution116.connect2(root116);
+	cout << "116.Populating Next Right Pointers in Each Node: "  << endl;

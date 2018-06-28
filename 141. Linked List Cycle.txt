@@ -1,0 +1,36 @@
+//141.Linked List Cycle
+bool hasCycle(LinkList head) {
+	if (head == NULL) return false;
+	LinkList walker = head;
+	LinkList runner = head;
+	while (runner->next != NULL && runner->next->next != NULL) {
+		walker = walker->next;
+		runner = runner->next->next;
+		if (walker == runner) return true;
+	}
+	return false;
+}
+
+//寻找环连接点（入口点）
+int FindLoopPort(LinkList head)
+{
+	LinkList slow = head, fast = head;
+	while (fast && fast->next)
+	{
+		slow = slow->next;
+		fast = fast->next->next;
+		if (slow == fast) break;
+	}
+	if (fast == NULL || fast->next == NULL)
+		return NULL;
+	slow = head;
+	int i = 0;
+	while (slow != fast)
+	{
+		slow = slow->next;
+		fast = fast->next;
+		i++;
+	}
+	printf("有环的位置在%d,值为%d \n", i, slow->val);
+	return slow->val;
+}

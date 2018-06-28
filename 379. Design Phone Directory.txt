@@ -1,0 +1,165 @@
+//379. Design Phone Directory
+/*Design a Phone Directory which supports the following operations:
+get: Provide a number which is not assigned to anyone.
+check: Check if a number is available or not.
+release: Recycle or release a number.
+
+// Init a phone directory containing a total of 3 numbers: 0, 1, and 2.
+PhoneDirectory directory = new PhoneDirectory(3);
+// It can return any available phone number. Here we assume it returns 0.
+directory.get();
+
+// Assume it returns 1.
+directory.get();
+
+// The number 2 is available, so return true.
+directory.check(2);
+
+// It returns 2, the only number that is left.
+directory.get();
+
+// The number 2 is no longer available, so return false.
+directory.check(2);
+
+// Release number 2 back to the pool.
+directory.release(2);
+
+// Number 2 is available again, return true.
+directory.check(2);
+这道题目本身思路并不难，但是我们可以选择不同的数据结构进行实现和比较，进而加深对不同数据结构的理解。本文试了三种不同的数据结构，
+先从理论上分析一下它们的时间和空间复杂度，然后给出我测试的运行时间（这个可能不会太准确）。为了渐变，我们设n = maxNumbers，表示最多可以提供的电话号码个数。
+1、哈希表：只需要存贮一个哈希表，所以空间复杂度理论上是O(n)（实际上存储空间应该比这个大，因为涉及到散列和解决冲突）。
+PhoneDirectory(int maxNumbers)：时间复杂度是O(n)。
+int get()：时间复杂度是O(1)。
+bool check(int number)：时间复杂度是O(1)。
+void release(int number)：时间复杂度是O(1)。
+2、二叉搜索树：只需要存贮一棵二叉搜索树，所以空间复杂度是O(n)。
+PhoneDirectory(int maxNumbers)：时间复杂度是O(nlogn)。
+int get()：时间复杂度是O(logn)。
+bool check(int number)：时间复杂度是O(logn)。
+void release(int number)：时间复杂度是O(logn)。
+3、数组：存储一个表示电话号码的数组，以及一个表示某个电话号码是否可用的数组，以及一个当前可用的电话号码个数。所以空间复杂度是O(2n)。
+PhoneDirectory(int maxNumbers)：时间复杂度是O(n)。
+int get()：时间复杂度是O(1)。
+bool check(int number)：时间复杂度是O(1)。
+void release(int number)：时间复杂度是O(1)。
+通过对比可以发现，1和3的时间复杂度都较低，但是由于3中每个函数中同时要对两个数组进行操作，所以运行时间还是要略慢于1。
+这是不是也说明C++系统中实现的散列函数还是不错的，解决冲突并没有花费太多的时间？*/
+class S379_1 { //哈希set        100万数据  构造函数建造数据 2.4s
+public:
+	/** Initialize your data structure here
+	@param maxNumbers - The maximum numbers that can be stored in the phone directory. */
+	S379_1(int maxNumbers) {
+		for (int i = 0; i < maxNumbers; ++i) {
+			hash.insert(i);
+		}
+	}
+
+	/** Provide a number which is not assigned to anyone.
+	@return - Return an available number. Return -1 if none is available. */
+	int get() {
+		if (hash.empty()) {
+			return -1;
+		}
+		int ret = *(hash.begin());
+		hash.erase(hash.begin());
+		return ret;
+	}
+
+	/** Check if a number is available or not. */
+	bool check(int number) {
+		return hash.count(number) > 0;
+	}
+
+	/** Recycle or release a number. */
+	void release(int number) {
+		hash.insert(number);
+	}
+private:
+	unordered_set<int> hash;
+};
+class S379_2 {  //RedBlack二叉树set     100万数据  构造函数建造数据 2.26s
+public:
+	/** Initialize your data structure here
+	@param maxNumbers - The maximum numbers that can be stored in the phone directory. */
+	S379_2(int maxNumbers) {
+		for (int i = 0; i < maxNumbers; ++i) {
+			st.insert(i);
+		}
+	}
+
+	/** Provide a number which is not assigned to anyone.
+	@return - Return an available number. Return -1 if none is available. */
+	int get() {
+		if (st.empty()) {
+			return -1;
+		}
+		int ret = *st.begin();
+		st.erase(st.begin());
+		return ret;
+	}
+
+	/** Check if a number is available or not. */
+	bool check(int number) {
+		return st.find(number) != st.end();
+	}
+
+	/** Recycle or release a number. */
+	void release(int number) {
+		st.insert(number);
+	}
+private:
+	set<int> st;
+};
+/*一道设计题，让我们设计一个电话目录管理系统，可以分配电话号码，查询某一个号码是否已经被使用，释放一个号码，需要注意的是，之前释放的号码下一次应该被优先分配。
+这题对C++解法的时间要求非常苛刻，尝试了好几种用set，或者stack/queue，或者使用vector的push_back等等，都TLE了，终于找到了一种可以通过OJ的解法。
+这里用两个一维数组recycle和flag，分别来保存被回收的号码和某个号码的使用状态，还有变量max_num表示最大数字，next表示下一个可以分配的数字，
+idx表示recycle数组中可以被重新分配的数字的位置，然后在get函数中，没法分配的情况是，当next等于max_num并且index小于等于0，此时返回-1。
+否则我们先看recycle里有没有数字，有的话先分配recycle里的数字，没有的话再分配next。记得更新相对应的flag中的使用状态，参见代码如下：*/  
+class S379_3 { //数组          100万数据  构造函数建造数据 0.009s  是最优算法
+public:
+		/** Initialize your data structure here
+		@param maxNumbers - The maximum numbers that can be stored in the phone directory. */
+		S379_3(int maxNumbers) {
+			max_num = maxNumbers;
+			next = idx = 0;
+			recycle.resize(max_num);
+			flag.resize(max_num, 1);
+		}
+
+		/** Provide a number which is not assigned to anyone.
+		@return - Return an available number. Return -1 if none is available. */
+		int get() {
+			if (next == max_num && idx <= 0) return -1;
+			if (idx > 0) {
+				int t = recycle[--idx];
+				flag[t] = 0;
+				return t;
+			}
+			flag[next] = false;
+			return next++;
+		}
+
+		/** Check if a number is available or not. */
+		bool check(int number) {
+			return number >= 0 && number < max_num && flag[number];
+		}
+
+		/** Recycle or release a number. */
+		void release(int number) {
+			if (number >= 0 && number < max_num && !flag[number]) {
+				recycle[idx++] = number;
+				flag[number] = 1;
+			}
+		}
+	private:
+		int max_num, next, idx;
+		vector<int> recycle, flag;
+};
+int main(int argc, char * argv[]){
+	//379. Design Phone Directory
+	int N379 = 10;
+	timestart();
+	S379_3 s379(N379);
+	timeend();
+	cout << "379. Design Phone Directory： " << cost << " s" << endl;

@@ -1,0 +1,25 @@
+//61. Rotate List
+/*Given a list, rotate the list to the right by k places, where k is non-negative.
+Given 1->2->3->4->5->NULL and k = 2,
+return 4->5->1->2->3->NULL.
+*/
+class S61 {
+public:
+	ListNode *rotateRight(ListNode *head, int k) {
+		if (head == nullptr || k == 0) return head;
+		int len = 1;
+		ListNode* p = head;
+		while (p->next) { //长度
+			len++;
+			p = p->next;
+		}
+		k = len - k % len;
+		p->next = head; //  首尾相连
+		for (int step = 0; step < k; step++) {
+			p = p->next; // 继续向后
+		}
+		head = p->next; //新的首节点
+		p->next = nullptr; // 断开环
+		return head;
+	}
+};

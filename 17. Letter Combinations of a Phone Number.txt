@@ -1,0 +1,57 @@
+//17. Letter Combinations of a Phone Number
+/*Given a digit string, return all possible letter combinations that the number could represent.
+A mapping of digit to letters (just like on the telephone buttons) is given below.
+Input:Digit string "23"
+Output: ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"].
+*/
+// Iterative
+class S17_1 {
+public:
+	vector<string> letterCombinations(string digits) {
+		vector<string> res;
+		if (digits.empty()) return res;
+		string dict[] = { "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz" };
+		res.push_back("");
+		for (unsigned int i = 0; i < digits.size(); ++i) {
+			int n = res.size();                             //此行不能删除
+			string str = dict[digits[i] - '2'];
+
+			for ( int j = 0; j < n; ++j) {                 //n不能被res.size()代替 因为下面有res.push操作
+				string tmp = res.front();
+				res.erase(res.begin());
+
+				for (unsigned int k = 0; k < str.size(); ++k) {
+					res.push_back(tmp + str[k]);
+				}
+			}
+		}
+		return res;
+	}
+};
+// Recursion
+class S17_2 {
+public:
+	vector<string> letterCombinations(string digits) {
+		vector<string> res;
+		if (digits.empty()) return res;
+		string dict[] = { "abc", "def", "ghi", "jkl", "mno", "pqrs", "tuv", "wxyz" };
+		letterCombinationsDFS(digits, dict, 0, "", res);
+		return res;
+	}
+	void letterCombinationsDFS(string digits, string dict[], int level, string out, vector<string> &res) {
+		if (level == digits.size()) res.push_back(out);
+		else {
+			string str = dict[digits[level] - '2'];
+			for (unsigned int i = 0; i < str.size(); ++i) {
+				out.push_back(str[i]);
+				letterCombinationsDFS(digits, dict, level + 1, out, res);
+				out.pop_back();
+			}
+		}
+	}
+};
+ 
+	//17. Letter Combinations of a Phone Number
+	S17_1 s17;
+	s17.letterCombinations("23");
+	cout << "17. Letter Combinations of a Phone Number: " << endl;

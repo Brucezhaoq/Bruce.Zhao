@@ -1,0 +1,132 @@
+/*leetcode 30 Substring with Concatenation of All Words
+You are given a string, s, and a list of words, words, that are all of the same length. 
+Find all starting indices of substring(s) in s that is a concatenation of each word in words 
+exactly once and without any intervening characters.
+For example, given:
+s: "barfoothefoobarman"
+words: ["foo", "bar"]
+You should return the indices: [0,9].
+(order does not matter).
+题意：给定一个字符串s, 以及一个字符串数组words, 字符串数组中的字符串长度都是一样的。找出s中所有的子串，要求这些子串是字符串数组中的所有字符串拼接的结果
+字符串拼接的时候顺序可以随意。最终返回子串开始的位置。
+解题思路：该题与“找出给定字符串中没有重复字符的子串”思路差不多，都是使用两个指针的方法，即将两个指针的位置之间的字符看作是一个窗口，因此本质是窗口的移动过程。
+只不过那道题使用的是HashSet,而这道题使用的是HashMap或者HashTable都可以，因为words字符串数组中的字符有可能重复。因此需要使用HashMap保存单词以及单词出现的次数。
+1. 将字符串数组中的字符串存放在HashMap中，key为单词，value为单词出现的次数
+2. 外循环的次数为s.length-word.length 内循环的次数为word个数  j指向s中要判断的单词的第一个字符
+   j每次增加一个单词的长度，j最多只能到s中最后一个单词的第一个字符的位置。
+3. 在内循环时， 借助了一个HashMap  curr来保存窗口中的单词及其出现的次数，如果当前的单词在hm中，则每当给该HashMap  curr中添加一个单词时
+   会判断其出现的次数是否超过了hm中该单词的出现次数，如果没超过，则表示匹配单词个数要增加count++, 否则需要缩小窗口，同样，由于左窗口left的那个单词并不一定与
+   当前单词相等，因此也需要从left开始一个循环找到那个次数超了的单词，同时还需要将循环中的单词的次数在curr这个HashMap中减少。直到hm中该单词的次数与curr中该单
+   词的次数相等。之后需要判断curr中所有的单词个数和count是否与hm中所有的单词的个数和是否相等。如果相等，表示从left到j的子串是words中字符串的一个连接
+   此时需要加入结果集，同时curr和left需要改变。如果在内循环中，突然有个单词不在hm中，则表示从left到j的串都不符合条件，则left = j + 单词长度同时清空curr和count
+*/
+
+#include <iostream>
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
+using namespace std;
+
+// travel all the words combinations to maintain a window
+// there are wl(word len) times travel
+// each time, n/wl words, mostly 2 times travel for each word
+// one left side of the window, the other right side of the window
+// so, time complexity O(wl * 2 * N/wl) = O(2N)
+vector<int> findSubstring(string S, vector<string> &L) {
+	vector<int> ans;
+	int n = S.size(), cnt = L.size();
+	if (n <= 0 || cnt <= 0) return ans;
+
+	// init word occurence
+	unordered_map<string, int> dict;
+	for (int i = 0; i < cnt; ++i) 
+		dict[L[i]]++;
+	// travel all sub string combinations
+	int wl = L[0].size();
+	for (int i = 0; i < wl; ++i) {
+		int left = i, count = 0;
+		unordered_map<string, int> tdict;
+		for (int j = i; j <= n - wl; j += wl) {
+			string str = S.substr(j, wl);
+			// a valid word, accumulate results
+			if (dict.count(str)) {
+				tdict[str]++;
+				if (tdict[str] <= dict[str])
+					count++;
+				else {
+					// a more word, advance the window left side possiablly
+					while (tdict[str] > dict[str]) {
+						string str1 = S.substr(left, wl);
+						tdict[str1]--;
+						if (tdict[str1] < dict[str1]) count--;
+						left += wl;
+					}
+				}
+				// come to a result
+				if (count == cnt) {
+					ans.push_back(left);
+					// advance one word
+					tdict[S.substr(left, wl)]--;
+					count--;
+					left += wl;
+				}
+			}
+			// not a valid word, reset all vars
+			else {
+				tdict.clear();
+				count = 0;
+				left = j + wl;
+			}
+		}
+	}
+
+	return ans;
+}
+
+vector<int> findSubstring2(string s, vector<string>& words) {
+	unordered_map<string, int> counts;
+	for (string word : words)
+		counts[word]++;
+	int n = s.length(), num = words.size(), len = words[0].length();
+	vector<int> indexes;
+	for (int i = 0; i <= n - num * len; i++)
+	{
+		unordered_map<string, int> seen;
+		int j = 0;
+		for (; j < num; j++)
+		{
+			string word = s.substr(i + j * len, len);
+			if (counts.find(word) != counts.end())
+			{
+				seen[word]++;                     //对s中barbar的字符串  seen[word]= {bar,2} >  counts[word]中的{bar,1} 
+				if (seen[word] > counts[word])
+					break;                      //对s中barbar的字符串  seen[word]= {bar,2} >  counts[word]中的{bar,1},break会使j++失效
+			}
+			else break;                   //意义在于counts中没发现word,跳出for j循环,j++不起作用。要不然if (j == num) 会true
+		}	 
+		if (j == num) 
+		{
+			indexes.push_back(i);
+			i += num*len-1;              //此行程序需要继续优化
+		}
+	   // i += j*len ;                     //此行程序需要继续优化
+	}
+	return indexes;
+} 
+
+int main(int argc, char* argv[])
+{
+	string s = "xbarbarfoothefoobar";
+	vector<string> L = { "foo", "bar" };
+	//string s = "abaa";
+	//vector<string> L = { "a"};
+
+	vector<int> res = findSubstring2(s, L);
+	for (vector<int>::const_iterator it = res.begin(); it !=res.end(); it++)
+	{
+		cout << *it << " ";
+	}
+
+	return 0;
+}

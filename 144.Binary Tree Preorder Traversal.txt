@@ -1,0 +1,67 @@
+//144.	Binary Tree Preorder Traversal
+/*Given a binary tree, return the preorder traversal of its nodes' values.
+For example:
+Given binary tree {1,#,2,3},
+
+   1
+    \
+     2
+    /
+   3
+return [1,2,3].
+Note: Recursive solution is trivial, could you do it iteratively?
+一般我们提到树的遍历，最常见的有先序遍历，中序遍历，后序遍历和层序遍历，它们用递归实现起来都非常的简单。而题目的要求是不能使用递归求解，
+于是只能考虑到用非递归的方法，这就要用到stack来辅助运算。由于先序遍历的顺序是"根-左-右", 算法为：
+1. 把根节点push到栈中
+2. 循环检测栈是否为空，若不空，则取出栈顶元素，保存其值，然后看其右子节点是否存在，若存在则push到栈中。再看其左子节点，若存在，则push到栈中。*/
+class S144_1 {
+public:
+	vector<int> preorderTraversal(TreeNode* root) {
+		if (!root) return{};
+		vector<int> res;
+		stack<TreeNode*> s{ { root } };
+		while (!s.empty()) {
+			TreeNode *t = s.top(); s.pop();
+			res.push_back(t->val);
+			if (t->right) s.push(t->right);
+			if (t->left) s.push(t->left);
+		}
+		return res;
+	}
+};
+class S144_2 {
+public:
+	vector<int> preOrderTraversal(TreeNode* root) {
+		TreeNode *cur = root, *prev = NULL;
+		vector<int> result;
+		while (cur != NULL)
+		{
+			if (cur->left == NULL)
+			{
+				printf("%d ", cur->val);
+				result.push_back(cur->val);
+				cur = cur->right;
+			}
+			else
+			{
+				prev = cur->left;
+				while (prev->right != NULL && prev->right != cur)
+					prev = prev->right;
+
+				if (prev->right == NULL)
+				{
+					printf("%d ", cur->val);  // the only difference with inorder-traversal
+					result.push_back(cur->val);
+					prev->right = cur;
+					cur = cur->left;
+				}
+				else
+				{
+					prev->right = NULL;
+					cur = cur->right;
+				}
+			}
+		}
+		return result;
+	}
+};

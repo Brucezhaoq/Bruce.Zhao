@@ -1,0 +1,96 @@
+//16. 3Sum Closest
+/*Given an array S of n integers, find three integers in S such that the sum is closest to a given number, target. 
+Return the sum of the three integers. You may assume that each input would have exactly one solution.
+For example, given array S = {-1 2 1 -4}, and target = 1.
+The sum that is closest to the target is 2. (-1 + 2 + 1 = 2).
+*/
+class S16_1 {  //3万数据找60000  秒回
+public:
+	int threeSumClosest(vector<int> &num, int target) {
+		vector<int> v(num.begin(), num.end()); // I didn't wanted to disturb original array.
+		int n = 0;
+		int ans = 0;
+		int sum;
+
+		sort(v.begin(), v.end());
+
+		// If less then 3 elements then return their sum
+		while (v.size() <= 3) {
+			return accumulate(v.begin(), v.end(), 0);
+		}
+
+		n = v.size();
+
+		/* v[0] v[1] v[2] ... v[i] .... v[j] ... v[k] ... v[n-2] v[n-1]
+		*                    v[i]  <=  v[j]  <= v[k] always, because we sorted our array.
+		* Now, for each number, v[i] : we look for pairs v[j] & v[k] such that
+		* absolute value of (target - (v[i] + v[j] + v[k]) is minimised.
+		* if the sum of the triplet is greater then the target it implies
+		* we need to reduce our sum, so we do K = K - 1, that is we reduce
+		* our sum by taking a smaller number.
+		* Simillarly if sum of the triplet is less then the target then we
+		* increase out sum by taking a larger number, i.e. J = J + 1.
+		*/
+		ans = v[0] + v[1] + v[2];
+		for (int i = 0; i < n - 2; i++) {
+			int j = i + 1;
+			int k = n - 1;
+			while (j < k) {
+				sum = v[i] + v[j] + v[k];
+				if (abs(target - ans) > abs(target - sum)) {
+					ans = sum;
+					if (ans == target) return ans;  //此语句会提高效率
+				}
+				(sum > target) ? k-- : j++;
+			}
+		}
+		return ans;
+	}
+};
+class S16_2 {  //和算法1没什么区别 只是少了if (ans == target) return ans; 
+public:         //3万数据 找60000需要10秒
+	int threeSumClosest(vector<int>& nums, int target) {
+		int closest = nums[0] + nums[1] + nums[2];
+		int diff = abs(closest - target);
+		sort(nums.begin(), nums.end());
+		for (unsigned int i = 0; i < nums.size() - 2; ++i) {
+			int left = i + 1, right = nums.size() - 1;
+			while (left < right) {
+				int sum = nums[i] + nums[left] + nums[right];
+				int newDiff = abs(sum - target);
+				if (diff > newDiff) {
+					diff = newDiff;
+					closest = sum;
+				}
+				if (sum < target) ++left;
+				else --right;
+			}
+		}
+		return closest;
+	}
+};
+clock_t start0, end0; double  cost;
+void timestart()  { start0 = clock(); }
+void timeend()  { end0 = clock();   cost = (double)(end0 - start0) / CLOCKS_PER_SEC; }
+
+void Print2dVec(const vector<vector<int> >& result){
+	for (auto it: result){
+		for (auto it0: it)
+			cout << it0 << ' ';
+		cout << endl;
+	}
+}
+
+//16. 3Sum Closest
+	//vector<int> nums16{ 1, 2, 9, 28, 29 }; 
+	//vector<int> nums16 {1, 20, 30, 60, 101};  
+
+	int d16 = 30000;
+	vector<int> nums16(d16, 0);
+	for (int i = 0; i < d16; i++)
+		nums16[i] = i;
+	timestart();
+	S16_1 s16;
+	int closest = s16.threeSumClosest(nums16, 60000);
+	timeend();
+	cout << "16. 3Sum Closest计算时间是 : " << cost << "s, return " << closest << endl;

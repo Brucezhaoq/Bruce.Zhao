@@ -1,0 +1,77 @@
+//251. Flatten 2D Vector
+/* Implement an iterator to flatten a 2d vector.
+For example,Given 2d vector =
+[
+	[1, 2],
+	[3],
+	[4, 5, 6]
+]
+By calling next repeatedly until hasNext returns false, the order of elements returned by next should be : [1, 2, 3, 4, 5, 6].
+Follow up :As an added challenge, try to code it using only iterators in C++ or iterators in Java.*/
+//C++ Solution 1 :
+class Vector2D_1 {
+public:
+	Vector2D_1(vector<vector<int>>& vec2d) {
+		for (auto a : vec2d) {
+			v.insert(v.end(), a.begin(), a.end());
+		}
+	}
+	int next() {
+		return v[i++];
+	}
+	bool hasNext() {
+		return i < v.size();
+	}
+private:
+	vector<int> v;
+	unsigned int i = 0;
+};
+//C++ Solution 2 :
+class Vector2D_2 {
+public:
+	Vector2D_2(vector<vector<int>>& vec2d) {
+		v = vec2d;
+		x = y = 0;
+	}
+	int next() {
+		return v[x][y++];
+	}
+	bool hasNext() {
+		while (x < v.size() && y == v[x].size()) {
+			++x;
+			y = 0;
+		}
+		return x < v.size();
+	}
+private:
+	vector<vector<int>> v;
+	unsigned int x, y;
+};
+//C++ Solution 3 :
+class Vector2D_3 {
+public:
+	Vector2D_3(vector<vector<int>>& vec2d) {
+		x = vec2d.begin();
+		end = vec2d.end();
+	}
+	int next() {
+		return (*x)[y++];
+	}
+	bool hasNext() {
+		while (x != end && y == (*x).size()) {
+			++x;
+			y = 0;
+		}
+		return x != end;
+	}
+private:
+	vector<vector<int>>::iterator x, end;
+	unsigned int y = 0;
+};
+//251. Flatten 2D Vector
+	vector<vector<int>>  vec2d{ { 1, 2 }, { 3 }, { 4, 5, 6 } };
+	Vector2D_1 Vector2D_1(vec2d);
+	cout << "251. Flatten 2D Vector: " ;
+	while (Vector2D_1.hasNext())
+		cout << Vector2D_1.next() << ' ';
+        cout << endl;

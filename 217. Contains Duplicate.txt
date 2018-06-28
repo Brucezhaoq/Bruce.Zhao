@@ -1,0 +1,59 @@
+//217. Contains Duplicate Given an array of integers, find if the array contains any duplicates.
+// Your function should return true
+// if any value appears at least twice in the array, and it should return false if every element is distinct.
+
+class S217 {
+public:
+	bool containsDuplicate1(vector<int>& nums) {   // O(N^2), memory: O(1) 50万数据,运行时间9.2s
+		unordered_map<int, int> m;
+		for (unsigned int i = 0; i < nums.size(); ++i) {
+			if (m.find(nums[i]) != m.end()) return true;
+			++m[nums[i]];
+		}
+		return false;
+	}
+	/*bool containsDuplicate2(vector<int>& nums) {     // O(N^2), memory: O(1) 50万数据,运行时间超过1000s,此方法没有使用意义
+
+		for (int i = 0; i < nums.size(); i++) {
+			for (int j = i + 1; j < nums.size(); j++) {
+				if (nums[i] == nums[j]) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}*/
+	bool containsDuplicate3(vector<int>& nums) {  //O(N lg N), memory: O(1) - not counting the memory used by sort  50万数据,运行时间1.37s
+		sort(nums.begin(), nums.end());
+		for (unsigned int i = 1; i < nums.size(); ++i) {
+			if (nums[i] == nums[i - 1]) return true;
+		}
+		return false;
+	}
+	bool containsDuplicate4(vector<int>& nums) { // O(N), memory: O(N)  50万数据,运行时间7.4s
+
+		hash_set<int> distinct;
+		for (int num : nums) {
+			if (distinct.find(num) != distinct.end()) {
+				return true;
+			}
+			distinct.insert(num);
+		}
+		return false;
+	}
+};
+int n = 500000;
+	vector<int> nums(n,0);
+	for (int i = 0; i < n; i++)
+		nums[i] = i;
+	Solution217_1 solution217_1;
+	
+	clock_t start2, end2;
+	double cost;
+	start2 = clock();
+
+	cout << solution217_1.containsDuplicate4(nums) << endl;
+
+	end2 = clock();
+    cost = (double)(end2 - start2) / CLOCKS_PER_SEC;
+	cout << "solution217计算时间: "  << cost << "s" << endl;

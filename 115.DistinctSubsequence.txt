@@ -1,0 +1,96 @@
+/*leetcode 115 Distinct Subsequences
+Given a string S and a string T, count the number of distinct subsequences of T in S.
+A subsequence of a string is a new string which is formed from the original string by deleting some 
+(can be none) of the characters without disturbing the relative positions of the remaining characters. 
+(ie, "ACE" is a subsequence of "ABCDE" while "AEC" is not).
+Here is an example:
+S = "rabbbit", T = "rabbit"
+Return 3.
+     S r a b b b i t
+     0 1 2 3 4 5 6 7  
+T 0  1 1 1 1 1 1 1 1  0 T
+r 1  0 1 1 1 1 1 1 1  1 r
+a 2  0 0 1 1 1 1 1 1  2 a
+b 3  0 0 0 1 2 3 3 3  3 b
+b 4  0 0 0 0 1 3 3 3  4 b
+i 5  0 0 0 0 0 0 3 3  5 i
+t 6  0 0 0 0 0 0 0 3  6 t
+     0 1 2 3 4 5 6 7     
+       r a b b b i t
+例如 'ab'在'abacab'中出现 4次
+[0,1]   [0,5]   [2,5]   [4,5] 
+dp[i][j]表示T的从0开始长度为i的子串和S的从0开始长度为j的子串的匹配的个数。
+比如, dp[2][3]表示T中的ra和S中的rab的匹配情况。
+(1)显然，至少有dp[i][j] = dp[i][j - 1].
+比如, 因为T 中的"ra" 匹配S中的 "ra"， 所以dp[2][2] = 1 。 显然T 中的"ra" 也匹配S中的 "rab"，所以s[2][3] 至少可以等于dp[2][2]。
+(2) 如果T[i-1] == S[j-1]， 那么dp[i][j] = dp[i][j - 1] + ( T[i - 1] == S[j - 1]   ?   dp[i - 1][j - 1]   :   0  ) 
+比如, T中的"rab"和S中的"rab"显然匹配 
+根据(1)， T中的"rab"显然匹配S中的“rabb”，所以dp[3][4] = dp[3][3] = 1，
+根据(2),   T中的"rab"中的b等于S中的"rab1b2"中的b2, 所以要把T中的"rab"和S中的"rab1"的匹配个数累加到当前的dp[3][4]中。 所以dp[3][4] += dp[2][3] = 2;
+(3) 初始情况是
+dp[0][0] = 1; // T和S都是空串.
+dp[0][1 ... S.length() ] = 1; // T是空串，S只有一种子序列匹配。
+dp[1 ... T.length() ][0] = 0; // S是空串，T不是空串，S没有子序列匹配。
+*/
+
+#include <iostream>
+#include <string>
+#include <vector>
+using namespace std;
+
+class Solution {
+public:           // S = "rabbbit", T = "rabbit"     
+	int numDistinct(string S, string T) {
+		vector<vector<int> > dp(T.length() + 1, vector<int>(S.length() + 1, 0));
+		dp[0][0] = 1;
+		for (int i = 1; i < S.length() + 1; ++i)
+			dp[0][i] = 1;
+		for (int i = 1; i < T.length() + 1; ++i)
+			dp[i][0] = 0;
+		for (int i = 1; i < T.length() + 1; ++i) {
+			for (int j = 1; j < S.length() + 1; ++j) {
+				dp[i][j] = dp[i][j - 1];
+				if (T[i - 1] == S[j - 1])           //  这里用 i - 1和j - 1是因为字符串string从0开始,比如dp[1][1]对应S[0]和T[0]中字符r                          
+					dp[i][j] += dp[i - 1][j - 1];
+			}
+		}
+		for (int i = 0; i < T.length() + 1; ++i) {
+			for (int j = 0; j < S.length() + 1; ++j) {
+					cout<<dp[i][j] << ' ';
+			}
+			cout << endl;
+		}
+
+		return dp[T.length()][S.length()];
+	}
+};
+int numDistinct(string string0, string substr) {
+	int n = string0.length(), 
+		m = substr.length();
+	if (m > n) return 0;    // impossible for subsequence
+
+	vector<vector<int>> path(m + 1, vector<int>(n + 1, 0));  
+	for (int k = 0; k <= n; k++)        path[0][k] = 1;    // initialization
+
+	for (int i = 1; i <= m; i++) {
+		for (int j = 1; j <= n; j++) {
+			path[i][j] = path[i][j - 1] + (substr[i - 1] == string0[j - 1] ? path[i - 1][j - 1] : 0);
+		}                                  //  这里用 i - 1和j - 1是因为字符串string从0开始,比如dp[1][1]对应S[0]和T[0]中字符r    
+	}
+	for (int i = 0; i <= m; ++i) {
+		for (int j = 0; j <= n; ++j) {
+			cout << path[i][j] << ' ';
+		}
+		cout << endl;
+	}
+
+	return path[m][n];
+}
+int main(int argc, char* argv[])
+{
+	//Solution distinct;
+   // distinct.numDistinct("rabbbit", "rabbit") ;
+	 numDistinct("rabbbit", "rabbit") ;
+	 numDistinct("abacab", "ab");
+	return 0;
+}

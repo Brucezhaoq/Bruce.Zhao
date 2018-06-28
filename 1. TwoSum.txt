@@ -1,0 +1,33 @@
+//1. two sum
+/* Given nums = [2, 7, 11, 15], target = 9,
+Because nums[0] + nums[1] = 2 + 7 = 9,
+return [0, 1].
+*/
+class Solution1 {
+public:
+	vector<int> twoSum(vector<int> &numbers, int target)
+	{
+		unordered_map<int, int> map;   //Key is the number and value is its index in the vector.
+		vector<int> result;
+		for (unsigned int i = 0; i < numbers.size(); i++) 
+		{
+			int numberToFind = target - numbers[i];  //if numberToFind is found in map, return them
+			if (map.find(numberToFind) != map.end()) 
+			{		
+				result.push_back(map[numberToFind] + 1); //+1 because indices are NOT zero based
+				result.push_back(i + 1);
+				return result;
+			}
+			map[numbers[i]] = i; //number was not found. Put it in the map.
+		}
+		return result;
+	}
+};
+//1.Two Sum
+	vector<int> nums1{ 2, 1, 7, 6};
+	Solution1 solution1;
+	vector<int> re = solution1.twoSum(nums1,8);
+	cout << "1.TwoSum Index: ";
+	for (auto i : re)
+		cout<<i<<' ';
+	cout << endl;

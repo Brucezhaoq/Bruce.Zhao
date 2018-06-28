@@ -1,0 +1,36 @@
+//leetcode.530Given a binary search tree with non-negative values, find the 
+//minimum absolute difference between values of any two nodes.
+class Solution530_1 {
+	int min_dif = INT_MAX, val = -1;
+public:
+	int getMinimumDifference(TreeNode* root) {
+		if (root->left != NULL) getMinimumDifference(root->left);
+		if (val >= 0) min_dif = min(min_dif, root->val - val);
+		val = root->val;
+		if (root->right != NULL) getMinimumDifference(root->right);
+		return min_dif;
+	}
+};
+class Solution530_2 {
+public:
+	int getMinimumDifference(TreeNode* root) {
+		int minx = INT_MAX;
+		stack<TreeNode*> stack;
+		TreeNode *cur = root, *pre = NULL;
+		while (cur != NULL || !stack.empty()) {
+			if (cur != NULL) {
+				stack.push(cur);
+				cur = cur->left;
+			}
+			else {
+				cur = stack.top();
+				stack.pop();
+				if (pre != NULL)
+					minx = min(minx, cur->val - pre->val);
+				pre = cur;
+				cur = cur->right;
+			}
+		}
+		return minx;
+	}
+};

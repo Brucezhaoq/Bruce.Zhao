@@ -1,0 +1,166 @@
+/*94. Binary Tree Inorder Traversal
+Given a binary tree, return the inorder traversal of its nodes\' values.
+For example :
+Given binary tree[1, null, 2, 3],
+1
+\\
+2
+/
+3
+return[1, 3, 2].
+Note: Recursive solution is trivial, could you do it iteratively ?*/
+
+/* Recursion
+二叉树的中序遍历顺序为左-根-右，可以有递归和非递归来解，其中非递归解法又分为两种，一种是使用栈来接，另一种不需要使用栈。我们先来看递归方法，十分直接，
+对左子结点调用递归函数，根节点访问值，右子节点再调用递归函数，代码如下：*/
+class Solution94_1 {
+public:
+	vector<int> inorderTraversal(TreeNode *root) {
+		vector<int> res;
+		inorder(root, res);
+		return res;
+	}
+private:
+	void inorder(TreeNode *root, vector<int> &res) {
+		if (!root) return;
+		if (root->left) inorder(root->left, res);
+		res.push_back(root->val);
+		if (root->right) inorder(root->right, res);
+	}
+};
+
+//C++ Solution 2 :
+//  stack1
+/*下面我们再来看非递归使用栈的解法，也是符合本题要求使用的解法之一，需要用栈来做，思路是从根节点开始，先将根节点压入栈，然后再将其所有左子结点压入栈，
+然后取出栈顶节点，保存节点值，再将当前指针移到其右子节点上，若存在右子节点，则在下次循环时又可将其所有左子结点压入栈中。这样就保证了访问顺序为左-根-右，代码如下：*/
+class Solution94_2 {
+public:
+	vector<int> inorderTraversal(TreeNode *root) {
+		vector<int> res;
+		if (root == NULL) return res;
+		stack<TreeNode*> s;
+		TreeNode *p = root;
+		while (p || !s.empty()) {
+			while (p) {
+				s.push(p);
+				p = p->left;
+			}
+			p = s.top();
+			s.pop();
+			res.push_back(p->val);
+			p = p->right;
+		}
+		return res;
+	}
+};
+//C++ Solution 4 和Solution2一样
+//  stack2  此方法循环次数和上面stack是一样的
+class Solution94_4 {
+public:
+	vector<int> inorderTraversal(TreeNode *root) {
+		vector<int> vector;
+		stack<TreeNode *> stack;
+		TreeNode *pCurrent = root;
+		while (!stack.empty() || pCurrent)
+		{
+			if (pCurrent)
+			{
+				stack.push(pCurrent);
+				pCurrent = pCurrent->left;
+			}
+			else
+			{
+				pCurrent = stack.top();
+				vector.push_back(pCurrent->val);
+				stack.pop();
+				pCurrent = pCurrent->right;
+			}
+		}
+		return vector;
+	}
+};
+
+//C++ Solution 3 :
+// Non-recursion and no stack
+/*下面我们来看另一种很巧妙的解法，这种方法不需要使用栈，所以空间复杂度为常量，这种非递归不用栈的遍历方法有个专门的名字，叫Morris Traversal，
+在介绍这种方法之前，我们先来引入一种新型树，叫 Threaded binary tree，这个还不太好翻译，我第一眼看上去以为是叫线程二叉树，但是感觉好像又跟线程没啥关系，
+后来看到网上有人翻译为螺纹二叉树，但本人认为这翻译也不太敢直视，很容易让人联想到为计划生育做出突出贡献的某世界著名品牌，但是苦于找不到更合理的翻译方法，
+就暂且叫螺纹二叉树吧。我们先来看看维基百科上关于它的英文定义：A binary tree is threaded by making all right child pointers that would normally be 
+null point to the inorder successor of the node (if it exists), and all left child pointers that would normally be null point to the inorder 
+predecessor of the node.
+就是说螺纹二叉树实际上是把所有原本为空的右子节点指向了中序遍历顺序之后的那个节点，把所有原本为空的左子节点都指向了中序遍历之前的那个节点，具体例子可以点击这里。
+那么这道题跟这个螺纹二叉树又有啥关系呢？由于我们既不能用递归，又不能用栈，那我们如何保证访问顺序是中序遍历的左-根-右呢。原来我们需要构建一个螺纹二叉树，
+我们需要将所有为空的右子节点指向中序遍历的下一个节点，这样我们中序遍历完左子结点后，就能顺利的回到其根节点继续遍历了。具体算法如下：
+1. 初始化指针cur指向root
+2. 当cur不为空时
+　 - 如果cur没有左子结点
+  　 a) 打印出cur的值
+     b) 将cur指针指向其右子节点
+   - 反之
+     将pre指针指向cur的左子树中的最右子节点　
+     * 若pre不存在右子节点
+       a) 将其右子节点指回cur
+       b) cur指向其左子节点
+     * 反之
+       a) 将pre的右子节点置空
+       b) 打印cur的值
+       c) 将cur指针指向其右子节点
+其实Morris遍历不仅仅对中序遍历有用，对先序和后序同样有用，具体可参见网友NOALGO博客，和 Annie Kim's Blog的博客。
+所以对二叉树的三种常见遍历顺序(先序，中序，后序)就有三种解法(递归，非递归，Morris遍历)，总共有九段代码呀，熟练掌握这九种写法才算初步掌握了树的遍历挖~~
+至于二叉树的层序遍历也有递归和非递归解法，至于有没有Morris遍历的解法还有待大神们的解答*/
+class Solution94_3 {
+public:
+	vector<int> inorderTraversal(TreeNode *root) {
+		vector<int> res;
+		if (!root) return res;
+		TreeNode *cur, *pre;
+		cur = root;
+		while (cur) {
+			if (!cur->left) {
+				res.push_back(cur->val);
+				cur = cur->right;
+			}
+			else {
+				pre = cur->left;
+				while (pre->right && pre->right != cur) pre = pre->right;
+				if (!pre->right) {
+					pre->right = cur;
+					cur = cur->left;
+				}
+				else {
+					pre->right = NULL;
+					res.push_back(cur->val);
+					cur = cur->right;
+				}
+			}
+		}
+		return res;
+	}
+};
+
+//94. 
+	Solution297_1 Otree297;       //建立 1 # 2 3 的二叉树对象,#代表NULL
+	TreeNode* tree94 = Otree297.deserialize("1 # 2 3");
+	Solution94_1 solution94_1;
+	Solution94_2 solution94_2;
+	Solution94_3 solution94_3;
+	Solution94_4 solution94_4;
+	vector<int> res94_1 = solution94_1.inorderTraversal(tree94);
+	vector<int> res94_2 = solution94_2.inorderTraversal(tree94);
+	vector<int> res94_3 = solution94_3.inorderTraversal(tree94);
+	vector<int> res94_4 = solution94_4.inorderTraversal(tree94);
+	cout << "94.Binary Tree Inorder Traversal : " << endl;
+	for (int re : res94_1)
+		cout << re << " ";
+	cout << endl;
+	for (int re : res94_2)
+		cout << re << " ";
+	cout << endl;
+	for (int re : res94_3)
+		cout << re << " ";
+	cout << endl;
+	for (int re : res94_4)
+		cout << re << " ";
+	cout << endl;
+
+ 

@@ -1,0 +1,62 @@
+//290.Word Pattern 词语模式
+/*Given a pattern and a string str, find if str follows the same pattern.
+Examples:
+pattern = "abba", str = "dog cat cat dog" should return true.
+pattern = "abba", str = "dog cat cat fish" should return false.
+pattern = "aaaa", str = "dog cat cat dog" should return false.
+pattern = "abba", str = "dog dog dog dog" should return false.
+Notes:
+Both pattern and str contains only lowercase alphabetical letters.
+Both pattern and str do not have leading or trailing spaces.
+Each word in str is separated by a single space.
+Each letter in pattern must map to a word with length that is at least 1.
+Credits:
+Special thanks to @minglotus6 for adding this problem and creating all test cases.
+这道题给我们一个模式字符串，又给我们一个单词字符串，让我们求单词字符串中单词出现的规律是否符合模式字符串中的规律。那么首先想到就是用哈希表来做，
+建立模式字符串中每个字符和单词字符串每个单词之间的映射，而且这种映射必须是一对一关系的，不能'a‘和’b'同时对应‘dog'，所以我们在碰到一个新字符时，
+首先检查其是否在哈希表中出现，若出现，其映射的单词若不是此时对应的单词，则返回false。如果没有在哈希表中出现，我们还要遍历一遍哈希表，
+看新遇到的单词是否已经是哈希表中的映射，如果没有，再跟新遇到的字符建立映射，参见代码如下：*/
+class S290_1 {
+public:
+	bool wordPattern(string pattern, string str) {
+		unordered_map<char, string> m;
+		istringstream in(str);
+		int i = 0;
+		for (string word; in >> word; ++i) {
+			if (m.find(pattern[i]) != m.end()) {
+				if (m[pattern[i]] != word) return false;
+			}
+			else {
+				for (unordered_map<char, string>::iterator it = m.begin(); it != m.end(); ++it) {
+					if (it->second == word) return false;
+				}
+				m[pattern[i]] = word;
+			}
+		}
+		return i == pattern.size();
+	}
+};
+/*当然这道题也可以用两个哈希表来完成，分别将字符和单词都映射到当前的位置，那么我们在遇到新字符和单词时，首先看两个哈希表是否至少有一个映射存在，
+如果有一个存在，则比较两个哈希表映射值是否相同，不同则返回false。如果两个表都不存在映射，则同时添加两个映射，参见代码如下：*/
+class S290_2 {
+public:
+	bool wordPattern(string pattern, string str) {
+		unordered_map<char, int> m1;
+		unordered_map<string, int> m2;
+		istringstream in(str);
+		int i = 0;
+		for (string word; in >> word; ++i) {
+			if (m1.find(pattern[i]) != m1.end() || m2.find(word) != m2.end()) {
+				if (m1[pattern[i]] != m2[word]) return false;
+			}
+			else {
+				m1[pattern[i]] = m2[word] = i + 1;
+			}
+		}
+		return i == pattern.size();
+	}
+};
+int main(int argc, char * argv[]){
+	//290.Word Pattern 词语模式
+	S290_1 s290;
+	cout << "290.Word Pattern: " << s290.wordPattern("abba", "dog cat cat dog") << endl;

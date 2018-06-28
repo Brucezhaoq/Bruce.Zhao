@@ -1,0 +1,152 @@
+/**5. Longest Palindromic Substring
+给定一个字符串，求出其最长回文子串。例如：
+s="abcd",最长回文长度为 1；
+s="ababa",最长回文长度为 5；
+s="abccb",最长回文长度为 4，即 bccb。
+以上问题的传统思路大概是，遍历每一个字符，以该字符为中点向两边查找。其时间复杂度为$O(n^2)$，不高效。
+1975年，一个叫Manacher的人发明了一个算法，Manacher算法，也称马拉车算法，该算法可以把时间复杂度提升到$O(n)$。
+由于回文分为偶回文（比如 bccb）和奇回文（比如 bcacb），而在处理奇偶问题上会比较繁琐，所以这里我们使用一个技巧，
+在字符间插入一个字符（前提这个字符未出现在串里）。举个例子：s="abbahopxpo"，转换为s_new="$#a#b#b#a#h#o#p#x#p#o#"
+这里的字符 &dollar; 只是为了防止越界，下面代码会有说明），如此，s 里起初有一个偶回文abba和一个奇回文opxpo，
+被转换为#a#b#b#a#和#o#p#x#p#o#，长度都转换成了奇数。
+定义一个辅助数组int p[]，p[i]表示以s_new[i]为中心的最长回文的半径，例如：
+i	        0	1	2	3	4	5	6	7	8	9	10	11	12	13	14	15	16	17	18	19	20	21
+s_new[i]	$	#	a	#	b	#	b	#	a	#	h	#	o	#	p	#	x	#	p	#	o	#
+p[i]		    1	2	1	4	5	2	1	2	1	2	1	2	1	2	1	6	1	2	1	2	1
+可以看出，p[i]-1正好是原字符串中最长回文串的长度。
+Manacher算法之所以快，就快在对 p 数组的求法上有个捷径。在我们解决了奇偶回文的繁琐时，剩下的难点就是求 p 数组，按照普通思维，我们是这样求解的：
+求解p[i]，先初始化p[i]=1，再以s_new[i]为中心判断两边是否相等，相等就p[i]++。这就是普通的思维，但是我们想想，能否让p[i]的初始化不是 1，让它更大点，看下图：
+
+                         j = 2*id-i, p[j]已经计算过,所以另p[i]=p[j]可以使p[i]尽量大 减少while循环
+               mx的对称点 j                     id                 i    mx
+       ------------|-----|---------------------|-----------------|-----|---------------
+                       p[j]=8              p[id]=10             p[i]=8   未探索字符
+
+设置两个变量，mx 和 id 。
+mx 代表以s_new[id]为中心的最长回文最右边界，也就是mx=id+p[id]。
+假设我们现在求p[i]，也就是以s_new[i]为中心的最长回文半径，如果i<mx，如上图，那么：
+if (i < mx)
+p[i] = min(p[2 * id - i], mx - i);
+2 * id -i其实就是等于 j ，p[j]表示以s_new[j]为中心的最长回文半径，见上图，因为 i 和 j 关于 id 对称，我们利用p[j]赋值给p[i]来加快查找
+但p[i] = p[2 * id - i] 不能越界上图第三行p[i]=8会超过mx后未探索字符,所以这种情况p[i]最大只能mx-i了
+*/
+#include<iostream>  
+#include<string>
+#include<algorithm> 
+#include<time.h> 
+using namespace std;
+
+char s[1000];
+char s_new[2000];
+int p[2000];
+
+int Init()
+{
+	int len = strlen(s);
+	s_new[0] = '$';
+	s_new[1] = '#';
+	int j = 2;
+
+	for (int i = 0; i < len; i++)
+	{
+		s_new[j++] = s[i];
+		s_new[j++] = '#';
+	}
+
+	s_new[j] = '\0';  //别忘了哦  
+
+	return j;  //返回s_new的长度  
+}
+
+int Manacher()
+{
+	int len = Init();  //取得新字符串长度并完成向s_new的转换  
+	int maxLen = -1;   //最长回文长度  
+
+	int id;
+	int i_max = 0;
+	int count0 = 0;
+	for (int i = 1; i < len; i++)
+	{
+		if (i < i_max)
+			p[i] = min(p[2 * id - i], i_max - i);  //2*id-i也就是j 他和i是对称的也就是让p[j]赋值给p[i] 但存在越界问题 所以别超过i_max-i
+		else
+			p[i] = 1;
+
+		while (s_new[i - p[i]] == s_new[i + p[i]])  //不需边界判断，因为左有'$',右有'\0'  
+		{
+			p[i]++;
+			count0++;
+		}
+		
+		if (i_max < i + p[i])  //我们每走一步i，都要和i_max比较，我们希望i_max尽可能的远，这样才能更有机会执行if (i < i_max)这句代码，从而提高效率  
+		{
+			id = i;
+			i_max = i + p[i];
+		}
+
+		maxLen = max(maxLen, p[i] - 1);
+		cout << "i:" << i << "  p[i]:" << p[i] << "  i_max:" << i_max << "  maxlen: " << maxLen << endl;
+	}
+	cout << "count计数器: " << count0 << endl;
+	return maxLen;
+}
+string longestPalindrome1(string s) {
+	if (s.empty()) return "";
+	if (s.size() == 1) return s;
+	int min_start = 0, max_len = 1;
+	int count0 = 0;
+	for (int i = 0; i < s.size();) {
+		if (s.size() - i <= max_len / 2) break;
+		int j = i, k = i;
+		while (k < s.size() - 1 && s[k + 1] == s[k]) { ++k; count0++; } // Skip duplicate characters.
+		i = k + 1;
+		while (k < s.size() - 1 && j > 0 && s[k + 1] == s[j - 1]) { ++k; --j; count0++; } // Expand.
+		int new_len = k - j + 1;
+		if (new_len > max_len) { min_start = j; max_len = new_len; }
+	}
+	cout << "count计数器: " << count0 << endl;
+	return s.substr(min_start, max_len);
+}
+//longestPalindrome1优化版
+string longestPalindrome2(string s) {
+	if (s.size() < 2)
+		return s;
+	int len = s.size(), max_left = 0, max_len = 1, left, right;
+	for (int start = 0; start < len && len - start > max_len / 2;) {
+		left = right = start;
+		while (right < len - 1 && s[right + 1] == s[right])
+			++right;
+		start = right + 1;
+		while (right < len - 1 && left > 0 && s[right + 1] == s[left - 1]) {
+			++right;
+			--left;
+		}
+		if (max_len < right - left + 1) {
+			max_left = left;
+			max_len = right - left + 1;
+		}
+	}
+	return s.substr(max_left, max_len);
+}
+ 
+int main()
+{
+	strcpy(s, "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz");
+	Manacher() ;
+	/*
+	string s; 
+	for (int i = 0; i < 1000000;i++)
+	s.append("a");
+	clock_t start, end;
+	double cost;
+	start = clock();
+
+	longestPalindrome2(s);
+	end = clock();
+    cost = (double)(end - start) / CLOCKS_PER_SEC;
+	cout <<cost << "s" << endl;*/
+	 
+	return 0;
+}
+ 

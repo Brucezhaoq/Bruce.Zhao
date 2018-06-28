@@ -1,0 +1,86 @@
+// leetcode  206. Reverse Linked List
+ 
+#include <iostream>
+using namespace std;
+
+typedef struct Node
+{
+	int data;
+	struct Node *next;
+}Node;
+
+/* 定义LinkList */
+typedef struct Node *ListNode;
+
+bool  InitList(ListNode *L)
+{
+	*L = (ListNode)malloc(sizeof(Node)); /* 产生头结点,并使L指向此头结点 */
+	if (!(*L)) /* 存储分配失败 */
+	{
+		return false;
+	}
+	(*L)->next = NULL; /* 指针域为空 */
+	return true;
+}
+
+/*  Insert单链线性表L（尾插法） */
+void Insert(Node *tempHead, int tempKey)
+{
+	if (NULL == tempHead)return;
+	Node *pre = tempHead, *cur = tempHead->next;
+	while (cur != NULL)
+	{
+		pre = cur;
+		cur = cur->next;
+	}
+	Node *p;
+	p = new Node;
+	p->data = tempKey;
+	p->next = NULL;
+	pre->next = p;
+}
+
+int ListPrint(ListNode L)
+{
+	ListNode p = L->next;
+	while (p)
+	{
+		printf("  %d ", p->data);
+		//visit(p->data);
+		p = p->next;
+	}
+	printf("\n");
+	return 0;
+}
+
+ 
+
+ListNode reverseList(ListNode head) {//迭代  
+	if (head == NULL || head->next == NULL) return head;
+	ListNode pre = NULL;
+	ListNode curr = head->next;
+	while (curr != NULL){
+		ListNode nextTemp = curr->next;//先将curr的next暂存  
+		curr->next = pre;//当前节点的next=它的前驱  
+		pre = curr;//当前节点变成新的前驱节点  
+		curr = nextTemp;
+	}
+	head->next = pre;  /* 将链表头节点指向p1 */
+	return head;
+}
+ 
+
+int main(int argc, char* argv[])
+{
+	ListNode L;
+	InitList(&L);
+	
+	Insert(L, 1);
+	Insert(L, 2);
+	ListPrint(L);
+
+	reverseList(L);
+    ListPrint(L);
+
+	return 0;
+}

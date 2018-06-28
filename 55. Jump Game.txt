@@ -1,0 +1,49 @@
+//55. Jump Game
+/*Given an array of non-negative integers, you are initially positioned at the first index of the array.
+Each element in the array represents your maximum jump length at that position.
+Determine if you are able to reach the last index.
+一个数组，数组的每个元素表示你能前进的最大步数，最开始时你在第一个元素所在的位置，之后你可以前进，问能不能到达最后一个元素位置。
+For example:
+A = [2,3,1,1,4], return true.一种走法是 0 - 2 - 3 - 4，还有一种走法是 0 - 1 - 4
+A = [3,2,1,0,4], return false.
+*/
+// DP
+class S55_1 {
+public:
+	bool canJump(vector<int>& A, int n) {
+		vector<int> dp(n, 0);
+		for (int i = 1; i < n; ++i) {
+			dp[i] = max(dp[i - 1], A[i - 1]) - 1;
+			if (dp[i] < 0) return false;
+		}
+		return dp[n - 1] >= 0;
+	}
+};
+class S55_2{
+public:
+	bool canJump(vector<int>& A, int n) {
+		int i = 0;
+		for (int reach = 0; i < n && i <= reach; ++i)
+			reach = max(i + A[i], reach);
+		return i == n; //如果要求正好到达最后点, 可以(i == n) && (reach < n)
+	}
+};
+class S55_3 {
+public:
+	bool canJump(vector<int>& A, int n) {
+		// 记录历史跳最远距离
+		int distance = 0;
+		for (int i = 0; i < n && i <= distance; ++i){
+			// A[i]+i当前跳最远距离 distance为i之前跳最远距离
+			distance = max(A[i] + i, distance);
+		}//for
+		if (distance < n - 1){
+			return false;
+		}//if
+		return true;
+	}
+};
+//55.Jump Game
+	vector<int> nums55{ 5, 0, 0, 0, 0 };//3,2,1,0,4   2, 3, 0, 1, 4
+	S55_2 s55;
+	cout << "55. Jump Game: " << s55.canJump(nums55, nums55.size()) << endl;

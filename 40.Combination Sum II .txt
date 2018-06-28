@@ -1,0 +1,78 @@
+// 40.Combination Sum II
+/*Given a collection of candidate numbers (C) and a target number (T), 
+find all unique combinations in C where the candidate numbers sums to T.
+Each number in C may only be used once in the combination.
+Note:
+All numbers (including target) will be positive integers.
+The solution set must not contain duplicate combinations.
+For example, given candidate set [10, 1, 2, 7, 6, 1, 5] and target 8, 
+A solution set is: 
+[
+  [1, 7],
+  [1, 2, 5],
+  [2, 6],
+  [1, 1, 6]
+]
+*/
+class S40_1 {//此方法需要深度优化,截止2016-11未优化,暂不能使用
+public:
+	vector<vector<int> > combinationSum2(vector<int> &num, int target) {
+		vector<vector<int> > res;
+		vector<int> out;
+		sort(num.begin(), num.end());
+		combinationSum2DFS(num, target, 0, out, res);
+		return res;
+	}
+private:
+	void combinationSum2DFS(vector<int> &num, int target, unsigned int start, vector<int> &out, vector<vector<int> > &res) {
+		if (target < 0) return;                //是否可以popback
+		else if (target == 0) res.push_back(out);  //是否可以return
+		else {
+			for (unsigned int i = start; i < num.size(); ++i) {
+				if (i > start && num[i] == num[i - 1]) 
+					continue;                         //是否可以break   
+				out.push_back(num[i]);
+				combinationSum2DFS(num, target - num[i], i + 1, out, res);
+				out.pop_back();
+			}
+		}
+	}
+};
+class S40_2 { //深度优化版 效率很高
+public:
+	vector<vector<int> > combinationSum2(vector<int> &num, int target)
+	{
+		vector<vector<int>> res;
+		sort(num.begin(), num.end());
+		vector<int> local;
+		findCombination(res, 0, target, local, num);
+		return res;
+	}
+private:
+	void findCombination(vector<vector<int>>& res, const unsigned int order, const int target, vector<int>& local, const vector<int>& num)
+	{
+		if (target == 0)
+		{
+			res.push_back(local);
+			return;
+		}
+		else
+		{
+			for (unsigned int i = order; i<num.size(); i++) // iterative component
+			{
+				if (num[i]>target) 
+					return;
+				if (i&&num[i] == num[i - 1] && i>order)
+					continue; // check duplicate combination
+				local.push_back(num[i]);
+					findCombination(res, i + 1, target - num[i], local, num); // recursive componenet
+				local.pop_back();
+			}
+		}
+	}
+};
+//40.Combination Sum II  
+	vector<int> nums40{ 10, 1, 2, 7, 6, 1, 5 };
+	S40_2 s40;
+	vector<vector<int>> res40 = s40.combinationSum2(nums40, 8);
+	cout << "40.Combination Sum II: " << endl;

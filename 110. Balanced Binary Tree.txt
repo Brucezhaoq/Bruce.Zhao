@@ -1,0 +1,19 @@
+//110. Balanced Binary Tree
+/*Given a binary tree, determine if it is height-balanced.
+For this problem, a height-balanced binary tree is defined as a binary tree in which the depth of the two subtrees 
+of every node never differ by more than 1.
+求二叉树是否平衡，根据题目中的定义，高度平衡二叉树是每一个节点的两个字数的深度差不能超过1，那么我们肯定需要一个求各个点深度的函数，然后对每个节点的两个子树
+来比较深度差，时间复杂度为O(NlgN)，代码如下：*/
+class Solution110 {
+public:
+	bool isBalanced(TreeNode *root) {
+		if (!root) return true;
+		if (abs(getDepth(root->left) - getDepth(root->right)) > 1) 
+			return false;
+		return isBalanced(root->left) && isBalanced(root->right);
+	}
+	int getDepth(TreeNode *root) {
+		if (!root) return 0;
+		return 1 + max(getDepth(root->left), getDepth(root->right));
+	}
+};

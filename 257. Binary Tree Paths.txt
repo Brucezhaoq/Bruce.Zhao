@@ -1,0 +1,96 @@
+//257. Binary Tree Paths
+/*Given a binary tree, return all root - to - leaf paths.For example, given the following binary tree :
+     1
+    / \    
+   2   3
+    \  
+     5
+All root - to - leaf paths are :   ["1->2->5", "1->3"]*/
+//C++ Solution 1 :
+//(1)Recursion, if root is empty, return, if root is a leaf, then return cur+root->val, if root has childrens,
+//then do recursion on each child, with cur updated to cur + root->val +"->"
+class Solution257_1 {
+public:
+	vector<string> binaryTreePaths(TreeNode* root) {
+		vector<string> res;
+		if (root) dfs(root, "", res);
+		return res;
+	}
+private:			
+	void dfs(TreeNode *root, string out, vector<string> &res) {
+		out += to_string(root->val);
+		if (!root->left && !root->right) res.push_back(out);
+		else {
+			if (root->left) dfs(root->left, out + "->", res);
+			if (root->right) dfs(root->right, out + "->", res);
+		}
+	}
+};
+//(2) DFS Version using a stack
+//Using a stack(the element is a pair of the current node pointer and the string recording the path from root to the current node).
+//The logic is the same as(1)
+class Solution257_2 {
+public:
+	vector<string> binaryTreePaths(TreeNode* root) {
+		vector<string> res;
+		TreeNode *curNode;
+		string curPath;
+		stack<pair<TreeNode*, string>> liveNodes;
+		if (root) liveNodes.push(make_pair(root, ""));
+		while (!liveNodes.empty())
+		{
+			curNode = liveNodes.top().first;
+			curPath = liveNodes.top().second;
+			liveNodes.pop();
+			if (!curNode->left && !curNode->right)
+			{
+				res.push_back(curPath + to_string(curNode->val));
+			}
+			else
+			{
+				if (curNode->left)  
+					liveNodes.push(make_pair(curNode->left, curPath + to_string(curNode->val) + "->"));
+				if (curNode->right) 
+					liveNodes.push(make_pair(curNode->right, curPath + to_string(curNode->val) + "->"));
+			}
+		}
+		return res;
+	}
+};
+//(3) BFS queue based solution.
+//It prints all the paths in an ascending order of the path length
+class Solution257_3 {
+public:
+	vector<string> binaryTreePaths(TreeNode* root) {
+		queue<pair<TreeNode*, string>> liveNodes[2];
+		int cur = 0, next = 1;
+		TreeNode* curNode;
+		string curPath;
+		vector<string> res;
+
+		if (root) liveNodes[cur].push(make_pair(root, ""));
+		while (!liveNodes[cur].empty())
+		{
+			curNode = liveNodes[cur].front().first;
+			curPath = liveNodes[cur].front().second;
+			liveNodes[cur].pop();
+			if (!curNode->left && !curNode->right) 
+				res.push_back(curPath + to_string(curNode->val));
+			else{
+				if (curNode->left)  
+					liveNodes[next].push(make_pair(curNode->left, curPath + to_string(curNode->val) + "->"));
+				if (curNode->right) 
+					liveNodes[next].push(make_pair(curNode->right, curPath + to_string(curNode->val) + "->"));
+			}
+			if (liveNodes[cur].empty()) 
+				swap(cur, next);
+		}
+		return res;
+	}
+};
+//257. Binary Tree Paths
+	vector<int> vals257{ 1, 2, 3, 4, 5 };
+	TreeNode* root257 = insertCompleteTree2(&root257, vals257);  //构建完全二叉树
+	Solution257_3 Solution257_1;
+	Solution257_1.binaryTreePaths(root257);
+	cout << "257. Binary Tree Paths: "<<endl;

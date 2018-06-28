@@ -1,0 +1,110 @@
+//76.Minimum Window Substring 最小窗口子串
+/*Given a string S and a string T, find the minimum window in S which will contain all the characters in T in complexity O(n).
+For example,
+S = "ADOBECODEBANC"
+T = "ABC"
+Minimum window is "BANC".
+Note:If there is no such window in S that covers all characters in T, return the emtpy string "".
+If there are multiple such windows, you are guaranteed that there will always be only one unique minimum window in S.
+这道题的要求是要在O(n)的时间度里实现找到这个最小窗口字串,当没有满足题意的子串时返回空字符串,那么暴力搜索Brute Force肯定是不能用的，我们可以考虑哈希表，其中key是T中的字符，
+value是该字符出现的次数。
+- 我们最开始先扫描一遍T，把对应的字符及其出现的次数存到哈希表中。
+- 然后开始遍历S，遇到T中的字符，就把对应的哈希表中的value减一，直到包含了T中的所有的字符，纪录一个字串并更新最小字串值。
+- 将子窗口的左边界向右移，略掉不在T中的字符，如果某个在T中的字符出现的次数大于哈希表中的value，则也可以跳过该字符。
+思路：采用滑动窗口，窗口有左右边界，先通过扩展右边界找出一个包含T中所有字符的子串，然后收缩左边界，直到不能再收缩。记录此时的子串。然后收缩左边界，
+继续扩展右边界，直到再找到满足要求的子串，和上次的进行比较，保存更小的子串。返回执行，直到右边界到达S串尾，且左边界不能再收缩。
+Example: S ="acbbaca" T ="aba"
+S  a  c  b  b a  c  a
+T  a  b  a            通过map记录各字符出现个数
+ count记录已经找到的T中的字符数目 当count==T.size 表明此窗口包含T中全部字符
+扩展  a  c  b  b  a  c  a    a在T中更新map中a的value 2->1, ++count
+     ^   
+扩展  a  c  b  b  a  c  a    c不在T中 count不变 继续扩展
+	 ^   ^
+扩展  a  c  b  b  a  c  a    b在T中更新map中的value 1->0, ++count此时==2了
+	 ^   ^  ^
+扩展  a  c  b  b  a  c  a    b在T中更新map value 0->-1,  T中只有一个b,count不更新
+	 ^   ^  ^  ^
+扩展  a  c  b  b  a  c  a    a在T中更新map中a的value 1->0  ++count此时count==3了
+	  ^  ^  ^  ^  ^
+ count==3表明此窗口包含T中全部字符 记录此时子串信息 并进行左侧收缩操作
+
+收缩  a  c  b  b  a  c  a    a在T中,map中a的次数是0表明窗口中a的数目恰好等于T中a的数目  更新map中a的次数为1 表示还需要找到一个a  此时count==2了
+      *  ^  ^  ^  ^
+扩展  a  c  b  b  a  c  a    c不在T中继续扩展 count不变
+        ^  ^  ^  ^  ^
+扩展  a  c  b  b  a  c  a    a在T中, 更新map中a的次数为0  更新count=3
+		^  ^  ^  ^  ^  ^
+count==3表明此窗口包含T中全部字符 但长度大于上次 所以这次不记录子串信息  进行左侧收缩操作
+
+收缩  a  c  b  b  a  c  a    c不在T中, 继续收缩
+		*  ^  ^  ^  ^  ^
+收缩  a  c  b  b  a  c  a     b在T中 此时map中的b次数为-1 表明该窗口b的次数比T中b的次数多1 这个b可以丢弃 更新map中b的次数为0
+		   *  ^  ^  ^  ^
+收缩  a  c  b  b  a  c  a    b在T中 此时map中的b次数为0 Over!
+		       *  ^  ^  ^
+*/
+class S76_1 {
+public:
+	string minWindow(string S, string T) {
+		if (T.size() > S.size()) return "";
+		string res = "";
+		unsigned int left = 0, count = 0, minLen = S.size() + 1;
+		unordered_map<char, int> m;
+		for (unsigned int i = 0; i < T.size(); ++i) {
+			if (m.find(T[i]) != m.end()) ++m[T[i]];
+			else m[T[i]] = 1;
+		}
+		for (unsigned int right = 0; right < S.size(); ++right) {
+			if (m.find(S[right]) != m.end()) {
+				--m[S[right]];
+				if (m[S[right]] >= 0) ++count;
+				while (count == T.size()) {
+					if (right - left + 1 < minLen) {
+						minLen = right - left + 1;
+						res = S.substr(left, minLen);
+					}
+					if (m.find(S[left]) != m.end()) {
+						++m[S[left]];
+						if (m[S[left]] > 0) --count;
+					}
+					++left;
+				}
+			}
+		}
+		return res;
+	}
+};
+/*这道题也可以不用STL的map，可以用int的数组模拟哈希表，因为ASCII只有256个字符，用两个大小为256的int数组即可代替哈希表，其余部分的思路完全相同，代码如下：*/
+class S76_2 {
+public:
+	string minWindow(string S, string T) {
+		if (T.size() > S.size()) return "";
+		string res = "";
+		unsigned int left = 0, count = 0, minLen = S.size() + 1;
+		int tm[256] = { 0 }, sm[256] = { 0 };
+		for (unsigned int i = 0; i < T.size(); ++i) ++tm[T[i]];
+		for (unsigned int right = 0; right < S.size(); ++right) {
+			if (tm[S[right]] != 0) {
+				++sm[S[right]];
+				if (sm[S[right]] <= tm[S[right]]) ++count;
+				while (count == T.size()) {
+					if (right - left + 1 < minLen) {
+						minLen = right - left + 1;
+						res = S.substr(left, minLen);
+					}
+					if (tm[S[left]] != 0) {
+						--sm[S[left]];
+						if (sm[S[left]] < tm[S[left]]) --count;
+					}
+					++left;
+				}
+			}
+		}
+		return res;
+	}
+};
+int main(int argc, char * argv[]){
+	//76.Minimum Window Substring
+	S76_1 s76;                                           //"ADOBECODEBANC","ABC"
+	cout<<"76.Minimum Window Substring: " << s76.minWindow("acbbaca","aba")<<endl;

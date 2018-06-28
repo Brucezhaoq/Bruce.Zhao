@@ -1,0 +1,76 @@
+//83. Remove Duplicates from Sorted List
+LinkList deleteDuplicates1(LinkList L)//删除重复结点的算法,复杂度O(N2),不要求原链表是否排序
+{
+	LinkList p, q, r;
+	p = L->next;
+	while (p)    // p用于遍历链表
+	{
+		q = p;
+		while (q->next) // q遍历p后面的结点，并与p数值比较
+		{
+			if (q->next->val == p->val)
+			{
+				r = q->next; // r保存需要删掉的结点
+				q->next = r->next;   // 需要删掉的结点的前后结点相接
+				free(r);
+			}
+			else
+				q = q->next;
+		}
+		p = p->next;
+	}
+	return L;
+}
+//83. Remove Duplicates from Sorted List  复杂度O(N) 链表已排序
+ListNode *deleteDuplicates2(ListNode *head) {
+	// Note: The Solution object is instantiated only once and is reused by each test case.
+	if (head == NULL)
+		return head;
+	ListNode *h = head, *p = head, *del = NULL;
+	while (p->next != NULL) {
+		if (p->next->val == head->val) {
+			del = p->next;
+			p->next = del->next;
+			delete del;
+		}
+		else {
+			head = p->next;
+			p = head;
+		}
+	}
+	return h;
+}
+//83. Remove Duplicates from Sorted List  复杂度O(N) 链表已排序
+ListNode *deleteDuplicates3(ListNode *head) {
+	// Note: The Solution object is instantiated only once and is reused by each test case.
+	if (head == NULL)
+		return head;
+	ListNode **pCur = &head, *del = NULL;  //used a second level pointer
+	while ((*pCur)->next) {
+		if ((*pCur)->next->val == (*pCur)->val) {
+			del = (*pCur)->next;
+			(*pCur)->next = del->next;
+			delete del;
+		}
+		else {
+			pCur = &((*pCur)->next);
+		}
+	}
+	return head;
+}
+
+/*  建立带表头结点的单链线性表L（尾插法） */
+void CreateListTail2(LinkList *L, vector<int> nums)
+{
+	LinkList p, r;
+	*L = new ListNode;
+	r = *L;                                /* r为指向尾部的结点 */
+	for (auto i: nums)
+	{
+		p = new ListNode;
+		p->val = i;
+		r->next = p;                        /* 将表尾终端结点的指针指向新结点 */
+		r = p;                            /* 将当前的新结点定义为表尾终端结点 */
+	}
+	r->next = NULL;                       /* 表示当前链表结束 */
+}

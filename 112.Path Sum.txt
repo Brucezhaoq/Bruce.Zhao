@@ -1,0 +1,31 @@
+//112.Path Sum
+/*Given a binary tree and a sum, determine if the tree has a root-to-leaf path such that adding up 
+all the values along the path equals the given sum.
+For example:
+Given the below binary tree and sum = 22,
+              5
+             / \
+            4   8
+           /   / \
+          11  13  4
+         /  \      \
+        7    2      1
+return true, as there exist a root-to-leaf path 5->4->11->2 which sum is 22.
+这道求二叉树的路径需要用深度优先算法DFS的思想来遍历每一条完整的路径，也就是利用递归不停找子节点的左右子节点，而调用递归函数的参数只有当前节点和sum值。
+首先，如果输入的是一个空节点，则直接返回false，如果如果输入的只有一个根节点，则比较当前根节点的值和参数sum值是否相同，若相同，返回true，否则false。 
+这个条件也是递归的终止条件。下面我们就要开始递归了，由于函数的返回值是Ture/False，我们可以同时两个方向一起递归，中间用或||连接，只要有一个是True，
+整个结果就是True。递归左右节点时，这时候的sum值应该是原sum值减去当前节点的值。代码如下：*/
+class Solution112{
+public:
+	bool hasPathSum(TreeNode *root, int sum) {
+		if (root == NULL) return false;
+		if (root->left == NULL && root->right == NULL && root->val == sum) return true;
+		return hasPathSum(root->left, sum - root->val) || hasPathSum(root->right, sum - root->val);
+	}
+};
+
+//112.Path Sum  
+	Solution112 solution112;
+	vector<int> vals112{ 5, 4, 8, 11, 0, 13, 4, 7, 2, 0, 0, 0, 0, 5, 1 };
+	struct TreeNode* root112 = insertCompleteTree2(&root112, vals112);
+	cout << "112.Path Sum: " << solution112.hasPathSum(root112, 22) << endl;

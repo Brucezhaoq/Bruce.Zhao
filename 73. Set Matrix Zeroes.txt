@@ -1,0 +1,74 @@
+//73.Set Matrix Zeroes
+/*Given a m x n matrix, if an element is 0, set its entire row and column to 0. Do it in place.
+*/
+class S73_1 {//TimeO(m*n),SpaceO(m+n)
+public:
+	void setZeroes(vector<vector<int> > &matrix) {
+		int  m = matrix.size();
+		int n = matrix[0].size();
+		vector<bool> row(m, false); // 
+		vector<bool> col(n, false); //
+		for (int i = 0; i < m; ++i) {
+			for (int j = 0; j < n; ++j) {
+				if (matrix[i][j] == 0) {
+					row[i] = col[j] = true;
+				}
+			}
+		}
+		for (int i = 0; i < m; ++i) {
+			if (row[i])
+				//fill(&matrix[i][0], &matrix[i][0] + n, 0);
+				for (int j = 0; j < n; ++j) 
+					matrix[i][j] = 0;
+		}
+		for (int j = 0; j < n; ++j) {
+			if (col[j]) {
+				for (int i = 0; i < m; ++i) 
+					matrix[i][j] = 0;
+			}
+		}
+	}
+};
+/*store states of each row in the first of that row, and store states of each column in the first of that column.
+Because the state of row0 and the state of column0 would occupy the same cell, I let it be the state of row0,
+and use another variable "col0" for column0. In the first phase, use matrix elements to set states in a top-down way. 
+In the second phase, use states to set matrix elements in a bottom-up way.
+*/
+class S73_2 {//TimeO(m*n),SpaceO(1)
+public:
+	void setZeroes(vector<vector<int> > &matrix) {
+		int col0 = 1,                               //col0
+			rows = matrix.size(), 
+			cols = matrix[0].size();
+
+		for (int i = 0; i < rows; i++) {
+			if (matrix[i][0] == 0) col0 = 0;       //col0
+			for (int j = 1; j < cols; j++)         //
+				if (matrix[i][j] == 0)
+					matrix[i][0] = matrix[0][j] = 0;
+		}
+
+		for (int i = rows - 1; i >= 0; i--) {
+			for (int j = cols - 1; j >= 1; j--)       //j从1开始     
+				if (matrix[i][0] == 0 || matrix[0][j] == 0)
+					matrix[i][j] = 0;
+			if (col0 == 0) matrix[i][0] = 0;        //j是从1开始,所以0列要赋值0
+		}
+	}
+};
+
+//73. Set Matrix Zeroes
+	vector<vector<int>> nums73{
+	{  0,  2,  3,  4,  5 },
+	{  6,  7,  8,  9, 10 },
+	{ 11, 12, 13, 14, 15 },
+	{ 16, 17, 18, 19, 20 },
+	{ 21, 22, 23, 24, 25 }};
+	/*int M73 = 3, N73 = 3;
+	vector<vector<int> > nums73(M73, vector<int>(N73, 0));
+	for (int i = 0; i < M73; i++)
+		for (int j = 0; j < N73; j++)
+			nums73[i][j] = i*N73 + j + 1;*/
+	S73_2 s73;
+	s73.setZeroes(nums73);
+	cout << "73. Set Matrix Zeroes: " << endl;

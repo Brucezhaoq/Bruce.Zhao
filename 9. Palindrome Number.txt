@@ -1,0 +1,36 @@
+//9. Palindrome Number
+/*Determine whether an integer is a palindrome. Do this without extra space.
+这道题跟Reverse Integer差不多，也是考查对整数的操作，相对来说可能还更加简单，因为数字不会变化，所以没有越界的问题。
+基本思路是每次去第一位和最后一位，如果不相同则返回false，否则继续直到位数为0
+这个题和Longest Palindromic Substring也很接近，只是处理的数据结构有所不同
+*/
+class S9_1{
+public:
+	bool isPalindrome(int x) {
+		if (x<0)
+			return false;
+		int div = 1;
+		while (div <= x / 10)
+			div *= 10;
+		while (x>0)
+		{
+			if (x / div != x % 10)
+				return false;
+			x = (x%div) / 10;
+			div /= 100;
+		}
+		return true;
+	}
+};
+class S9_2{
+public:
+	bool isPalindrome(int x) {
+		if (x<0 || (x != 0 && x % 10 == 0)) return false;
+		int sum = 0;
+		while (x>sum){
+			sum = sum * 10 + x % 10;
+			x = x / 10;
+		}
+		return (x == sum) || (x == sum / 10);
+	}
+};

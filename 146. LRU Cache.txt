@@ -1,0 +1,166 @@
+//146. LRU Cache
+/*
+Design and implement a data structure for Least Recently Used (LRU) cache. It should support the following operations: get and put.
+get(key) - Get the value (will always be positive) of the key if the key exists in the cache, otherwise return -1.
+put(key, value) - Set or insert the value if the key is not already present. When the cache reached its capacity, 
+it should invalidate the least recently used item before inserting a new item.
+Follow up:Could you do both operations in O(1) time complexity?
+Example:LRUCache cache = new LRUCache( 2   capacity )
+cache.put(1, 1);
+cache.put(2, 2);
+cache.get(1);       // returns 1
+cache.put(3, 3);    // evicts key 2
+cache.get(2);       // returns -1 (not found)
+cache.put(4, 4);    // evicts key 1
+cache.get(1);       // returns -1 (not found)
+cache.get(3);       // returns 3
+cache.get(4);       // returns 4
+*/
+/* LRUCache
+There is a similar example in Java, but I wanted to share my solution using the new C++11 unordered_map and a list.
+The good thing about lists is that iterators are never invalidated by modifiers (unless erasing the element itself). 
+This way, we can store the iterator to the corresponding LRU queue in the values of the hash map. 
+Since using erase on a list with an iterator takes constant time, all operations of the LRU cache run in constant time.
+*/
+class LRUCache {
+public:
+	LRUCache(int capacity) : _capacity(capacity) {}
+
+	int get(int key) {
+		auto it = cache.find(key);
+		if (it == cache.end())
+			return -1;
+		touch(it);
+		return it->second.first;
+	}
+
+	void put(int key, int value) {
+		auto it = cache.find(key);
+		if (it != cache.end()) 
+			touch(it);
+		else {
+			if (cache.size() == _capacity) {
+				cache.erase(used.back());
+				used.pop_back();
+			}
+			used.push_front(key);
+		}
+		cache[key] = { value, used.begin() };    // 
+	}
+
+private:
+	typedef list<int> LI;
+	typedef pair<int , LI::iterator> PII;
+	typedef unordered_map<int, PII> HIPII;
+
+	HIPII cache;
+	LI used;
+	int _capacity;
+
+	void touch(HIPII::iterator it) {
+		int key = it->first;
+		used.remove(key);	//used.erase(it->second.second); 
+		used.push_front(key);
+		it->second.second = used.begin();  // 删除此行代码 存在空指针风险
+	}
+};
+/*LRUCache_2
+cache.put(1, 1);
+cache.put(2, 2);
+cache.put(2, 3);  
+cache.put(3, 3);
+get()方法中如果删除 map[key] = lru_queue.begin(); 
+上述 cache.put(2, 3)会发生空指针崩溃。LRUCache和LRUCache_3未发生崩溃,原因有待debug
+*/
+class LRUCache_2 {// 
+public:
+	LRUCache_2(int capacity) {cap = capacity;}  //LRUCache_2(int capacity) : cap(capacity) {}
+
+	int get(int key) {
+		if (map.find(key) == map.end())
+			return -1;
+
+		list<KVPair>::iterator   pos = map[key];  //pos是iterator指针,或者auto pos = map[key];也可以
+		KVPair res = *pos;                        //auto res = *pos;也可以
+		lru_queue.erase(pos);
+		lru_queue.push_front(res);
+		map[key] = lru_queue.begin();    // 更新map中指针,指向新地址.由于erase操作使map[key]指向空指针
+		return res.v;
+	}
+
+	void put(int key, int value) {
+		if (get(key) != -1) {        //如key重复 更新value
+			map[key]->v = value;
+			return;
+		}
+		
+		lru_queue.emplace_front(key, value);   //KVPair pair(key, value); lru_queue.push_front(pair);
+		map[key] = lru_queue.begin();          
+
+		while (lru_queue.size() > cap) {
+			map.erase(lru_queue.back().k);
+			lru_queue.pop_back();
+		}
+	}
+
+private:
+	struct KVPair {
+		int k, v;
+		KVPair(int k, int v) : k(k), v(v) {}
+	};
+
+	list<KVPair> lru_queue;              //双向队列
+	unordered_map<int, list<KVPair>::iterator> map;
+	unsigned int cap;
+};
+class LRUCache_3{  //此方法最清晰
+private:
+	struct CacheNode {
+		int key;
+		int value;
+		CacheNode(int k, int v) :key(k), value(v){}
+	};
+public:
+	LRUCache_3(int capacity) {
+		this->capacity = capacity;
+	}
+	int get(int key) {
+		if (cacheMap.find(key) == cacheMap.end()) return -1;
+		// 当前节点移动到链表头部begin,并且更新map中该节点地址
+		cacheList.splice(cacheList.begin(), cacheList, cacheMap[key]);
+		cacheMap[key] = cacheList.begin();
+		return cacheMap[key]->value;
+	}
+	void put(int key, int value) {
+		if (cacheMap.find(key) == cacheMap.end()) {
+			if (cacheList.size() == capacity) { // 删除尾部节点 最少访问的节点
+				cacheMap.erase(cacheList.back().key);
+				cacheList.pop_back();
+			}
+			// 插入新节点到链表头部 并在map中增加此节点 
+			cacheList.push_front(CacheNode(key, value));
+			cacheMap[key] = cacheList.begin();
+		}
+		else {
+			// 更新节点的值 并移动到链表头 更新map中此节点地址
+			cacheMap[key]->value = value;
+			cacheList.splice(cacheList.begin(), cacheList, cacheMap[key]);
+			cacheMap[key] = cacheList.begin();
+		}
+	}
+private:
+	list<CacheNode> cacheList;
+	unordered_map<int, list<CacheNode>::iterator> cacheMap;
+	int capacity;
+};
+
+LRUCache_2 cache(2);
+	cache.put(1, 1);
+	cache.put(2, 2);
+	cout<<  "cache.get(1): " << cache.get(1)<<endl;       // returns 1
+	cache.put(3, 3);    // evicts key 2
+	cout << "cache.get(2): " << cache.get(2) <<endl;       // returns -1 (not found)
+	cache.put(4, 4);    // evicts key 1
+	cout << "cache.get(1): " << cache.get(1) << endl;        // returns -1 (not found)
+	cout << "cache.get(3): " << cache.get(3) << endl;        // returns 3
+	cout << "cache.get(4): " << cache.get(4) << endl;        // returns 4

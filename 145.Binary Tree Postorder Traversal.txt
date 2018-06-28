@@ -1,0 +1,121 @@
+//145.Binary Tree Postorder Traversal 二叉树的后序遍历
+/*Given a binary tree, return the postorder traversal of its nodes' values.
+For example:
+Given binary tree {1,#,2,3},
+   1
+    \
+     2
+    /
+   3
+return [3,2,1].
+Note: Recursive solution is trivial, could you do it iteratively?
+经典题目，求二叉树的后序遍历的非递归方法，跟前序，中序，层序一样都需要用到栈，后续的顺序是左-右-根，所以当一个节点值被取出来时，
+它的左右子节点要么不存在，要么已经被访问过了。具体思路可参见神网友 Yu's Coding Garden 的博客，代码如下：*/
+class S145_1 {
+public:
+	vector<int> postorderTraversal(TreeNode *root) {
+		vector<int> res;
+		if (!root) return res;
+		stack<TreeNode*> s;
+		s.push(root);
+		TreeNode *head = root;
+		while (!s.empty()) {
+			TreeNode *top = s.top();
+			if ((!top->left && !top->right) || top->left == head || top->right == head) {
+				res.push_back(top->val);
+				s.pop();
+				head = top;
+			}
+			else {
+				if (top->right) s.push(top->right);
+				if (top->left) s.push(top->left);
+			}
+		}
+		return res;
+	}
+};
+class S145_2 {
+	list<int> postOrderTraversal(TreeNode* root) {
+		list<int> result;
+		stack<TreeNode* > stack;
+		while (!stack.empty() || root != NULL) {
+			if (root != NULL) {
+				stack.push(root);
+				result.push_front(root->val);  // 
+				root = root->right;
+			}
+			else {
+				TreeNode* node = stack.top();
+				stack.pop();
+				root = node->left;
+			}
+		}
+		return result;
+	}
+};
+//postorderMorrisTraversal
+class S145_3 {
+public:
+	void postorderMorrisTraversal(TreeNode *root) {
+		TreeNode dump(0);
+		dump.left = root;
+		TreeNode *cur = &dump, *prev = NULL;
+		while (cur)
+		{
+			if (cur->left == NULL)
+			{
+				cur = cur->right;
+			}
+			else
+			{
+				prev = cur->left;
+				while (prev->right != NULL && prev->right != cur)
+					prev = prev->right;
+
+				if (prev->right == NULL)
+				{
+					prev->right = cur;
+					cur = cur->left;
+				}
+				else
+				{
+					printReverse(cur->left, prev);  // call print
+					prev->right = NULL;
+					cur = cur->right;
+				}
+			}
+		}
+	}
+private:
+	void reverse(TreeNode *from, TreeNode *to) // reverse the tree nodes 'from' -> 'to'.
+	{
+		if (from == to)
+			return;
+		TreeNode *x = from, *y = from->right, *z;
+		while (true)
+		{
+			z = y->right;
+			y->right = x;
+			x = y;
+			y = z;
+			if (x == to)
+				break;
+		}
+	}
+
+	void printReverse(TreeNode* from, TreeNode *to) // print the reversed tree nodes 'from' -> 'to'.
+	{
+		reverse(from, to);
+
+		TreeNode *p = to;
+		while (true)
+		{
+			printf("%d ", p->val);
+			if (p == from)
+				break;
+			p = p->right;
+		}
+
+		reverse(to, from);
+	}
+};

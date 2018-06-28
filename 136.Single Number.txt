@@ -1,0 +1,13 @@
+//136.Single Number 单独的数字
+/*Given an array of integers, every element appears twice except for one. Find that single one.
+Note:Your algorithm should have a linear runtime complexity. Could you implement it without using extra memory?
+本来是一道非常简单的题，但是由于加上了时间复杂度必须是O(n)，并且空间复杂度为O(1)，使得不能用排序方法，也不能使用map数据结构。那么只能另辟蹊径，
+需要用位操作Bit Operation来解此题*/
+class S136 {
+public:
+	int singleNumber(vector<int>& nums) {
+		int res = 0;
+		for (auto num : nums) res ^= num;
+		return res;
+	}
+};

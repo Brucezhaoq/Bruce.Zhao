@@ -1,0 +1,40 @@
+//  leetcode 223. Rectangle Area
+//  给n个非负整数 宽度都为1  计算最大面积
+
+#include <iostream>
+#include <vector>
+#include <stack>
+#include <algorithm>
+using namespace std;
+
+int LargestRectangleArea(vector<int>& height)
+{
+	height.push_back(0);	//确保原数组height的最后一位能够得到计算
+
+	stack<int> s;
+	int answer = 0;
+	int temp;	//临时变量
+	for (int i = 0; i < (int)height.size();)
+	{
+		if (s.empty() || height[i] > height[s.top()])
+		{
+			s.push(i);
+			i++;
+		}
+		else
+		{
+			temp = s.top();
+			s.pop();
+			answer = max(answer, height[temp] * (s.empty() ? i : i - s.top() - 1));
+		}
+	}
+	return answer;
+}
+
+int main(int argc, char* argv[])
+{
+	vector<int> height = {1,2,1};
+	cout << LargestRectangleArea(height) << endl;
+
+	return 0;
+}

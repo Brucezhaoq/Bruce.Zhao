@@ -1,0 +1,35 @@
+//203. Remove Linked List Elements
+/*Remove all elements from a linked list of integers that have value val.
+Given : 1 --> 2 --> 6 --> 3 --> 4 --> 5 --> 6, val = 6
+	Return: 1 --> 2 --> 3 --> 4 --> 5*/
+class S203_1 {
+public:
+	ListNode* removeElements(ListNode* head, int val) {
+		ListNode *dummy = new ListNode(-1), *pre = dummy;
+		dummy->next = head;
+		while (pre->next) {
+			if (pre->next->val == val) {
+				ListNode *t = pre->next;
+				pre->next = t->next;
+				t->next = NULL;
+				delete t;
+			}
+			else {
+				pre = pre->next;
+			}
+		}
+		return dummy->next;
+	}
+};
+class S203_2{
+public:
+	ListNode* removeElements(ListNode* head, int val) {
+		if (!head) return NULL;
+		head->next = removeElements(head->next, val);
+		return head->val == val ? head->next : head;
+	}
+};
+LinkList L203;
+			CreateListTail2_nohead(&L203, { 1, 2, 6, 3, 4, 5, 6 });
+			S203_1 s203;
+			ListPrint_noHead(s203.removeElements(L203,6));
