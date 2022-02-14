@@ -1,0 +1,32 @@
+class S695_dfs {
+public:
+	vector<int> direction{ -1, 0, 1, 0, -1 };
+	int maxAreaOfIsland(vector<vector<int>>& grid) {
+		int m = grid.size(), n = m ? grid[0].size() : 0, local_area, area = 0, x, y;
+		stack<pair<int, int>> island;
+		for (int i = 0; i < m; ++i) {
+			for (int j = 0; j < n; ++j) {
+				if (grid[i][j] == 1) {
+					local_area = 1;
+					grid[i][j] = -1;
+					island.push({ i, j });
+					while (!island.empty()) {
+						pair<int, int> cur = island.top();
+						island.pop();
+						for (int k = 0; k < 4; ++k) {
+							x = cur.first + direction[k],
+								y = cur.second + direction[k + 1];
+							if (x >= 0 && x < m && y >= 0 && y < n && grid[x][y] == 1) {
+								grid[x][y] = -1;
+								++local_area;
+								island.push({ x, y });
+							}
+						}
+					}
+					area = max(area, local_area);
+				}
+			}
+		}
+		return area;
+	}
+};
