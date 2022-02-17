@@ -1,0 +1,52 @@
+//283.
+class S283_2_0 {
+public:
+	void moveZeroes(vector<int>& nums) {
+		if (nums.empty() || nums.size() < 2) {
+			return;
+		}
+		//第一次遍历的时候，j指针记录非0的个数，只要是非0的统统都赋给nums[j]
+		int j = 0;
+		for (int i = 0; i < nums.size(); ++i) {
+			if (nums[i] != 0) {
+				nums[j++] = nums[i];
+			}
+		}
+		//非0元素统计完了，剩下的都是0了
+		//所以第二次遍历把末尾的元素都赋为0即可
+		for (int i = j; i < nums.size(); ++i) {
+			nums[i] = 0;
+		}
+	}
+};
+class S283_2_1 {
+public:
+	void moveZeroes(vector<int>& nums) {
+		if (nums.empty() || nums.size() < 2) {
+			return;
+		}
+		int k = 0;
+		for (int x : nums)
+			if (x != 0) nums[k++] = x;
+		while (k < nums.size())  nums[k++] = 0;
+	}
+};
+ 
+class S283_3 {
+public:
+	void moveZeroes(vector<int>& nums) {
+		if (nums.empty() || nums.size() < 2) {
+			return;
+		}
+		int j = 0;
+		for (int i = 0; i < nums.size(); i++) {
+			if (nums[i] != 0) {
+				if (i > j) {// #1
+					nums[j] = nums[i];
+					nums[i] = 0;
+				}
+				j++;
+			}
+		}
+	}
+};
